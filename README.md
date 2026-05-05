@@ -10,7 +10,7 @@ Drop in raw deal notes, get back a structured deal summary, suggested F&I add-on
 
 Powersports F&I managers spend hours every week retyping the same customer info into lender portals, hand-writing follow-up texts, and remembering which add-ons make sense for which customer profile. RevAssist collapses that work into one structured AI response.
 
-It's a focused proof-of-concept for what AI-augmented internal tooling looks like inside a dealership platform like [Revvable](https://www.revvable.com).
+It's a focused exploration of what AI-augmented internal tooling looks like inside the modern dealership stack — built for the people who actually close deals, not for the marketing team.
 
 ## What it does
 
@@ -39,14 +39,14 @@ All four sections render progressively as the response streams in.
 
 - **Schema-locked output**: the system prompt forces the model to return strict JSON. The frontend parses the stream incrementally and renders each section as soon as it's structurally valid.
 - **Optimistic partial render**: as tokens arrive, an attempt to parse runs on every chunk. The first valid parse swaps the raw stream view for the structured render.
-- **Latency surfaced**: response time and token count are surfaced to the UI for transparency.
+- **Latency surfaced**: response time and token count are exposed in the UI for transparency.
 - **Three sample deals included** for fast demo / testing.
 
 ## What's next
 
 - Real SSE streaming via the \`stream: true\` API parameter
 - Persistent deal history with Postgres
-- Hooks into 700Credit / Lightspeed / DP360 to pre-fill from a real lead
+- DMS / credit-bureau integrations to pre-fill from a real lead
 - Voice input for the deal desk
 
 ---
