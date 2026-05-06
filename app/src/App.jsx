@@ -141,8 +141,8 @@ export default function RevAssist() {
 
   const sevColor = sev => ({
     info: "text-cyan-400 border-cyan-400/30 bg-cyan-400/5",
-    warn: "text-amber-400 border-amber-400/30 bg-amber-400/5",
-    block: "text-red-400 border-red-400/30 bg-red-400/5"
+    warn: "text-amber-400 border-amber-400/40 bg-amber-400/10",
+    block: "text-red-200 border-red-500/60 bg-red-500/20 font-semibold"
   }[sev] || "text-zinc-400 border-zinc-700 bg-zinc-900");
 
   return (
@@ -181,9 +181,15 @@ export default function RevAssist() {
                 <div className="font-mono text-[10px] text-zinc-500 mt-0.5 uppercase tracking-wider">Deal Co-Pilot · Powersports F&I</div>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-xs font-mono text-zinc-500">
-              <span className={`w-2 h-2 rounded-full ${streaming ? "bg-emerald-400 pulse-dot" : "bg-zinc-600"}`}></span>
-              {streaming ? "STREAMING" : "READY"}
+            <div className="flex items-center gap-4 text-xs font-mono text-zinc-500">
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-1 border border-zinc-800 rounded text-[10px] uppercase tracking-wider">
+                <span className="text-zinc-600">model:</span>
+                <span className="text-zinc-300">claude-sonnet-4</span>
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${streaming ? "bg-emerald-400 pulse-dot" : "bg-zinc-600"}`}></span>
+                {streaming ? "STREAMING" : "READY"}
+              </span>
             </div>
           </div>
         </header>
@@ -235,8 +241,16 @@ export default function RevAssist() {
               </div>
 
               <div className="px-5 py-4 border-t border-zinc-800 flex items-center justify-between bg-zinc-950/40">
-                <div className="text-xs text-zinc-500 font-mono">
-                  {latency != null && !streaming && <>↳ {latency}ms · {rawOutput.length} chars</>}
+                <div className="text-xs text-zinc-500 font-mono flex items-center gap-3">
+                  {latency != null && !streaming && <span>↳ Generated in {(latency / 1000).toFixed(1)}s · ~{Math.round(rawOutput.length / 4)} tokens</span>}
+                  {(rawOutput || input) && !streaming && (
+                    <button
+                      onClick={() => { setInput(""); setRawOutput(""); setParsed(null); setError(null); setLatency(null); }}
+                      className="text-zinc-600 hover:text-zinc-300 transition uppercase tracking-wider text-[10px]"
+                    >
+                      Reset
+                    </button>
+                  )}
                 </div>
                 <button
                   onClick={runDeal}
@@ -250,10 +264,22 @@ export default function RevAssist() {
             </div>
 
             {/* Output */}
-            <div className="bg-zinc-950/60 border border-zinc-800 rounded-xl overflow-hidden">
-              <div className="px-5 py-3 border-b border-zinc-800 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-emerald-400" />
-                <span className="font-mono text-xs uppercase tracking-wider text-zinc-400">Co-Pilot Output</span>
+            <div className="px-5 py-3 border-b border-zinc-800 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-emerald-400" />
+                  <span className="font-mono text-xs uppercase tracking-wider text-zinc-400">Co-Pilot Output</span>
+                </div>
+                {parsed && (
+                  <button
+                    onClick={() => {
+                      const out = `DEAL SUMMARY\n${parsed.summary}\n\nSUGGESTED ADD-ONS\n${parsed.addons?.map(a => `• ${a.name} (${a.price_range}) — ${a.rationale}`).join("\n")}\n\nCOMPLIANCE FLAGS\n${parsed.compliance?.map(c => `[${c.severity.toUpperCase()}] ${c.flag}`).join("\n")}\n\nCUSTOMER FOLLOW-UP SMS\n${parsed.follow_up_sms}`;
+                      navigator.clipboard?.writeText(out);
+                    }}
+                    className="text-[10px] font-mono uppercase tracking-wider text-zinc-500 hover:text-emerald-400 transition px-2 py-1 border border-zinc-800 hover:border-emerald-400/50 rounded"
+                  >
+                    Copy All
+                  </button>
+                )}
               </div>
 
               <div ref={outputRef} className="p-5 h-[500px] overflow-y-auto">
@@ -264,12 +290,23 @@ export default function RevAssist() {
                 )}
 
                 {!error && !rawOutput && !streaming && (
-                  <div className="h-full flex items-center justify-center text-center">
-                    <div>
-                      <div className="w-12 h-12 mx-auto mb-3 rounded-full border border-zinc-800 flex items-center justify-center">
-                        <Sparkles className="w-5 h-5 text-zinc-700" />
-                      </div>
-                      <p className="text-zinc-600 text-sm font-mono">Run a deal to see output</p>
+                  <div className="h-full flex flex-col items-center justify-center text-center px-6">
+                    <div className="w-12 h-12 mx-auto mb-4 rounded-full border border-zinc-800 flex items-center justify-center">
+                      <Sparkles className="w-5 h-5 text-zinc-700" />
+                    </div>
+                    <p className="text-zinc-400 text-sm mb-6 max-w-xs">Run a deal to generate four structured outputs:</p>
+                    <div className="grid grid-cols-2 gap-2 w-full max-w-xs">
+                      {[
+                        { label: "Deal Summary", desc: "Plain-English recap" },
+                        { label: "Add-Ons", desc: "F&I product picks" },
+                        { label: "Compliance", desc: "Flags to verify" },
+                        { label: "Follow-Up SMS", desc: "Ready to send" }
+                      ].map((s, i) => (
+                        <div key={i} className="border border-zinc-800/60 rounded p-2 text-left">
+                          <div className="font-mono text-[10px] uppercase tracking-wider text-emerald-400/80">{s.label}</div>
+                          <div className="text-[10px] text-zinc-600 mt-0.5">{s.desc}</div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
