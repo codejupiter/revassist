@@ -27,6 +27,10 @@ RevAssist returns a schema-locked JSON response containing:
 
 All four sections render progressively as the response streams in.
 
+## Demo mode
+
+This repo runs in **mocked mode** — the streaming response is simulated client-side so the demo runs without an API key in the browser. In production, the Claude API call would live behind your own backend with auth, rate limiting, audit logging, and proper key management. The frontend patterns (partial-parse rendering, token-by-token UX, schema-locked output) are the part being demonstrated.
+
 ## Stack
 
 - **React 18** with hooks
