@@ -1,16 +1,32 @@
-# React + Vite
+# RevAssist — app
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The React + Vite frontend for RevAssist. See the [project README](../README.md) for what this is and why.
 
-Currently, two official plugins are available:
+## Run locally
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+npm run dev
+```
 
-## React Compiler
+Then open http://localhost:5173.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Scripts
 
-## Expanding the ESLint configuration
+| Command         | What it does                                  |
+| --------------- | --------------------------------------------- |
+| `npm run dev`   | Start the Vite dev server with HMR.           |
+| `npm run build` | Type-check and build a production bundle.    |
+| `npm run preview` | Serve the production build locally.        |
+| `npm run lint`  | Lint the source with ESLint.                  |
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Stack
+
+- React 19 with hooks
+- Vite 8 (React plugin)
+- Tailwind CSS v4 via the `@tailwindcss/vite` plugin
+- Lucide icons
+
+## Mock mode
+
+This build runs entirely in the browser — the streaming response is simulated client-side so the demo works without an API key. To wire it to a real LLM, replace the `mockResponses` block in [src/App.jsx](src/App.jsx) with a `fetch` to your backend that streams `text/event-stream` chunks; the partial-JSON parser already handles incremental tokens.
