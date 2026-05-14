@@ -6,6 +6,8 @@ Drop in raw deal notes, get back a structured deal summary, suggested F&I add-on
 
 **▶ [Live demo](https://codejupiter.github.io/revassist/)** · No login, no API key — runs entirely in your browser.
 
+![RevAssist deal desk interface](docs/screenshots/revassist-home.png)
+
 ---
 
 ## Why this exists
