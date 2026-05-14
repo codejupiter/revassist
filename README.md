@@ -47,6 +47,14 @@ npm run dev
 
 Then open http://localhost:5173. No API key required.
 
+For the production validation suite:
+
+```bash
+npm run lint
+npm run test
+npm run build
+```
+
 ## Stack
 
 - **React 19** with hooks
@@ -54,11 +62,13 @@ Then open http://localhost:5173. No API key required.
 - **Tailwind CSS v4** via the official Vite plugin
 - **Lucide React** for iconography
 - **Barlow Condensed + Inter + JetBrains Mono** type stack
+- **Vitest** coverage for deal routing, schema validation, partial JSON parsing, and export formatting
 - **Streaming LLM backend** for structured JSON generation (production)
 - **Token-streaming UX** with partial-JSON parsing as content arrives
 
 ## Architecture notes
 
+- **Isolated deal engine**: sample deals, mock response selection, schema validation, partial parsing, and copy/export formatting live in `src/lib/dealEngine.js` so the product logic can be tested independently of React.
 - **Schema-locked output**: the system prompt forces the model to return strict JSON. The frontend parses the stream incrementally and renders each section as soon as it's structurally valid.
 - **Optimistic partial render**: as tokens arrive, a parse attempt runs on every chunk. The first valid parse swaps the raw stream view for the structured render.
 - **Latency surfaced**: response time and token count are exposed in the UI for transparency.
@@ -66,7 +76,7 @@ Then open http://localhost:5173. No API key required.
 
 ## Deploy
 
-The `main` branch auto-deploys to GitHub Pages via [.github/workflows/deploy.yml](.github/workflows/deploy.yml). To enable:
+The `main` branch auto-deploys to GitHub Pages via [.github/workflows/deploy.yml](.github/workflows/deploy.yml). The workflow installs from lockfile, runs a production audit, lints, runs tests, builds the Vite bundle, then deploys the artifact. To enable:
 
 1. Push to `main`.
 2. In the repo: **Settings → Pages → Source: GitHub Actions**.
