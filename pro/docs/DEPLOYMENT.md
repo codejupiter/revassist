@@ -22,6 +22,8 @@ Provision these through the Vercel Marketplace when possible so environment vari
 
 Apply the schema in `db/schema.sql` before enabling the Postgres repository in production.
 
+For the managed-auth migration from signed demo sessions to provider-backed sessions, see [Authentication Migration](AUTHENTICATION.md).
+
 ## Environment Variables
 
 Server-only variables:
@@ -79,6 +81,7 @@ Expected quality gates:
 
 - Unit tests cover auth/session signing, repository mapping, rate limits, schemas, and eval failure cases.
 - `npm run eval` should report `Pass rate: 5/5`.
+- `npm run eval:report` should refresh `docs/EVAL_BASELINE.md` when eval fixtures change.
 - Smoke tests should pass on desktop and mobile Chromium.
 
 ## Vercel Deployment

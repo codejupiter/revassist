@@ -70,6 +70,7 @@ The `pro/` app is production-shaped but CI-safe:
 - It uses the Vercel AI SDK v6 structured-output path with `streamText` and `Output.object`.
 - It validates request payloads, model outputs, run records, and audit events with Zod.
 - It uses signed `httpOnly` cookies for tenant/operator session claims.
+- It documents the managed-auth migration path in [pro/docs/AUTHENTICATION.md](../pro/docs/AUTHENTICATION.md), with the current signed demo session treated as a replaceable adapter.
 - It records deal runs and audit events through a repository boundary backed by Neon Postgres when `DATABASE_URL` is present.
 - It switches rate limits from in-memory local mode to Upstash Redis when Redis REST credentials are configured.
 - It emits structured JSON logs for auth, history, analysis, rate-limit, and failure events without logging raw deal notes.

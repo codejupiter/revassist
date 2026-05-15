@@ -33,6 +33,8 @@ Copy `.env.example` to `.env.local` when adding live credentials or Postgres. Lo
 
 For production rollout, see [Deployment Runbook](docs/DEPLOYMENT.md).
 
+For the managed-auth migration path, see [Authentication Migration](docs/AUTHENTICATION.md).
+
 For the product and interview narrative, see [RevAssist Pro Case Study](../docs/case-studies/revassist-pro.md).
 
 ## Validation
@@ -61,6 +63,8 @@ The route checks for `VERCEL_OIDC_TOKEN`, `AI_GATEWAY_API_KEY`, or `OPENAI_API_K
 ## Sessions And Persistence
 
 The client opens a signed session through `POST /api/auth/demo`; the deal APIs then trust server-issued cookie claims instead of client-supplied headers. This keeps tenant and operator identity on the server side while remaining easy to demo.
+
+The provider migration path is documented in [Authentication Migration](docs/AUTHENTICATION.md). The key constraint is preserving the internal `SessionClaims` shape so Clerk, Descope, Auth0, or another provider can map into the same API, repository, rate-limit, and audit boundaries.
 
 Persistence is selected at runtime:
 

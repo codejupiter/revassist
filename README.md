@@ -15,6 +15,7 @@ Drop in raw deal notes, get back a structured deal summary, suggested F&I add-on
 - [RevAssist Pro](pro/README.md) — Next.js fullstack app with streaming API, signed session claims, Postgres-ready persistence, schema validation, rate limits, audit events, history, tests, and live AI mode.
 - [RevAssist Pro Eval Baseline](pro/docs/EVAL_BASELINE.md) — deterministic regression report for routing, schema validity, add-on relevance, compliance coverage, and SMS quality.
 - [RevAssist Pro Deployment](pro/docs/DEPLOYMENT.md) — Vercel, Neon, Upstash, env vars, observability, launch checklist, and rollback runbook.
+- [RevAssist Pro Auth Migration](pro/docs/AUTHENTICATION.md) — managed-auth migration plan for provider sessions, dealership membership, middleware, and tenant-safe claims.
 
 ---
 
@@ -85,6 +86,7 @@ npm run smoke
 - **Production backend path**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) documents the authenticated streaming API, data model, rate limits, audit logs, and evals needed to turn the browser demo into a SaaS workflow.
 - **Case-study narrative**: [docs/case-studies/revassist-pro.md](docs/case-studies/revassist-pro.md) explains the engineering decisions, tradeoffs, and interview story behind the Pro app.
 - **Eval baseline**: [pro/docs/EVAL_BASELINE.md](pro/docs/EVAL_BASELINE.md) turns the regression suite into a readable quality report for reviewers.
+- **Auth migration**: [pro/docs/AUTHENTICATION.md](pro/docs/AUTHENTICATION.md) explains how the demo session issuer becomes managed, tenant-aware auth.
 - **Latency surfaced**: response time and token count are exposed in the UI for transparency.
 - **Three sample deals** (sportbike / UTV / PWC) included for fast testing.
 
