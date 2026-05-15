@@ -1,6 +1,6 @@
 # RevAssist Architecture
 
-RevAssist is a focused AI workflow product for powersports dealership finance and insurance teams. The public demo runs in browser-only mock mode so it can be deployed safely on GitHub Pages, but the application is structured around the same boundaries a production version would use: a deal-note intake surface, a schema-locked generation layer, progressive rendering, and auditable output.
+RevAssist is a focused AI workflow product for powersports dealership finance and insurance teams. The public demo runs in browser-only mock mode so it can be deployed safely on GitHub Pages, and `pro/` now contains the Next.js fullstack foundation for the production version: a deal-note intake surface, a schema-locked streaming API, rate limiting, audit events, deal history, and CI-backed tests.
 
 ## Product Boundary
 
@@ -35,6 +35,33 @@ The browser demo keeps all product logic in `src/lib/dealEngine.js`:
 - Copy/export formatting.
 
 Keeping this logic out of React makes the workflow testable and makes the future backend swap smaller.
+
+## RevAssist Pro Foundation
+
+```mermaid
+flowchart TD
+  Client["Next.js deal workbench"] --> API["POST /api/deals/analyze"]
+  API --> Schema["Zod request validation"]
+  Schema --> Rate["tenant/user rate limit"]
+  Rate --> Repo["deal repository"]
+  Rate --> Mode{"Live AI credentials?"}
+  Mode -->|yes| AISDK["AI SDK streamText + Output.object"]
+  Mode -->|no| Mock["deterministic mock stream"]
+  AISDK --> SSE["SSE partial/final events"]
+  Mock --> SSE
+  SSE --> Client
+  Repo --> History["GET /api/deals/history"]
+  Repo --> Audit["audit event trail"]
+```
+
+The `pro/` app is production-shaped but CI-safe:
+
+- It defaults to mock streaming so tests and local development do not require secrets.
+- It switches to live AI only when `REVASSIST_AI_MODE=live` and gateway/provider credentials are available.
+- It uses the Vercel AI SDK v6 structured-output path with `streamText` and `Output.object`.
+- It validates request payloads, model outputs, run records, and audit events with Zod.
+- It records deal runs and audit events through a repository boundary that can be replaced by Postgres.
+- It includes unit tests and Playwright smoke tests for the full generated workflow.
 
 ## Production Backend Target
 

@@ -11,6 +11,7 @@ Drop in raw deal notes, get back a structured deal summary, suggested F&I add-on
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md) — product boundary, current frontend architecture, production backend target, API contract, data model, safety, and eval strategy.
+- [RevAssist Pro](pro/README.md) — Next.js fullstack app with streaming API, schema validation, rate limits, audit events, history, tests, and live AI mode.
 
 ---
 
@@ -94,10 +95,10 @@ For root-hosted deploys (Vercel, Netlify), set `VITE_BASE_PATH=/` in the build e
 
 ## What's next
 
-- Real SSE streaming via the `stream: true` API parameter
-- Persistent deal history with Postgres
-- DMS / credit-bureau integrations to pre-fill from a real lead
-- Voice input for the deal desk
+- Replace the RevAssist Pro in-memory repository with a Postgres adapter.
+- Replace demo headers with real auth/session claims.
+- Add DMS / credit-bureau integrations to pre-fill from a real lead.
+- Add voice input for the deal desk.
 
 ---
 

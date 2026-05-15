@@ -1,0 +1,41 @@
+{
+  "name": "revassist-pro",
+  "description": "Fullstack AI deal desk OS for powersports F&I teams.",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --port 3010",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit --pretty false",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "smoke": "playwright test",
+    "smoke:ui": "playwright test --ui"
+  },
+  "dependencies": {
+    "ai": "^6.0.182",
+    "lucide-react": "^1.14.0",
+    "next": "16.2.6",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "zod": "^4.4.3"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "8.5.10"
+    }
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@types/node": "^24.12.3",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.2",
+    "eslint-config-next": "16.2.6",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.6"
+  }
+}

@@ -2,12 +2,14 @@ node_modules
 .env
 .env.local
 .DS_Store
+.next
 dist
 build
 smoke-dist
 playwright-report
 test-results
 *.log
+*.tsbuildinfo
 
 # Claude Code local config — local-only, machine-specific
 .claude/
