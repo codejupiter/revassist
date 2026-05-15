@@ -44,6 +44,9 @@ flowchart TD
   Auth --> API["POST /api/deals/analyze"]
   API --> Schema["Zod request validation"]
   Schema --> Rate["tenant/user rate limit"]
+  Rate --> RateStore{"UPSTASH_REDIS env?"}
+  RateStore -->|yes| Redis["Upstash Redis"]
+  RateStore -->|no| MemoryRate["in-memory CI/local limiter"]
   Rate --> Repo["deal repository boundary"]
   Rate --> Mode{"Live AI credentials?"}
   Mode -->|yes| AISDK["AI SDK streamText + Output.object"]
@@ -66,6 +69,7 @@ The `pro/` app is production-shaped but CI-safe:
 - It validates request payloads, model outputs, run records, and audit events with Zod.
 - It uses signed `httpOnly` cookies for tenant/operator session claims.
 - It records deal runs and audit events through a repository boundary backed by Neon Postgres when `DATABASE_URL` is present.
+- It switches rate limits from in-memory local mode to Upstash Redis when Redis REST credentials are configured.
 - It includes a labeled eval suite for profile routing, add-on relevance, compliance coverage, severity coverage, and customer SMS quality.
 - It includes unit tests and Playwright smoke tests for the full generated workflow.
 
@@ -92,7 +96,7 @@ Production responsibilities move behind an authenticated API:
 - Stream server-sent events to preserve the fast deal-desk feel.
 - Validate generated JSON before the final result is accepted.
 - Store deal runs, operator actions, latency, model version, and compliance flags.
-- Rate-limit by user, tenant, and dealership location.
+- Rate-limit by user, tenant, dealership location, and client IP with durable Redis-backed counters in production.
 - Redact sensitive customer data before logs leave the application boundary.
 - Keep server-owned tenant identity in signed sessions or managed auth claims, never in trusted client fields.
 

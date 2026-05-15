@@ -76,7 +76,11 @@ export async function POST(request: Request) {
 
   const ip = getClientIp(request);
   const rateKey = `analyze:${session.dealerId}:${session.userId}:${ip}`;
-  const rate = analyzeRateLimiter.check(rateKey, RATE_LIMIT, RATE_WINDOW_MS);
+  const rate = await analyzeRateLimiter.check(rateKey, RATE_LIMIT, RATE_WINDOW_MS).catch(() => null);
+
+  if (!rate) {
+    return NextResponse.json({ error: "Rate limit service unavailable" }, { status: 503 });
+  }
 
   if (!rate.allowed) {
     await getDealRepository().addAudit({
@@ -85,7 +89,7 @@ export async function POST(request: Request) {
       severity: "medium",
       actorId: session.userId,
       dealerId: session.dealerId,
-      detail: { ip, resetAt: rate.resetAt }
+      detail: { ip, resetAt: rate.resetAt, store: rate.store }
     });
 
     return NextResponse.json(
@@ -94,7 +98,9 @@ export async function POST(request: Request) {
         status: 429,
         headers: {
           "Retry-After": String(Math.ceil((rate.resetAt - Date.now()) / 1000)),
-          "X-RateLimit-Remaining": "0"
+          "X-RateLimit-Remaining": "0",
+          "X-RateLimit-Reset": String(rate.resetAt),
+          "X-RateLimit-Store": rate.store
         }
       }
     );
@@ -178,7 +184,9 @@ export async function POST(request: Request) {
       "Cache-Control": "no-cache, no-transform",
       "Connection": "keep-alive",
       "X-Accel-Buffering": "no",
-      "X-RateLimit-Remaining": String(rate.remaining)
+      "X-RateLimit-Remaining": String(rate.remaining),
+      "X-RateLimit-Reset": String(rate.resetAt),
+      "X-RateLimit-Store": rate.store
     }
   });
 }

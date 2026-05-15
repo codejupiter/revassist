@@ -12,7 +12,7 @@ This app is the production-grade successor to the browser-only RevAssist demo. I
 - Mock-safe fallback for local development and CI.
 - Signed `httpOnly` session cookie with tenant/user claims.
 - Zod schemas for request, output, deal runs, and audit events.
-- Per-user/dealer rate limiting.
+- Per-user/dealer rate limiting with Upstash Redis production mode and in-memory local mode.
 - Repository boundary with in-memory local mode and Neon Postgres production mode.
 - SQL schema for deal runs and audit events in `db/schema.sql`.
 - Labeled eval fixtures with a regression scoring runner for output quality.
@@ -66,6 +66,12 @@ Persistence is selected at runtime:
 
 Apply `db/schema.sql` to a Neon database before enabling `DATABASE_URL`.
 
+## Rate Limiting
+
+The analyze endpoint rate-limits by dealership, operator, and client IP. Without Redis credentials it uses an in-memory store for local development and CI. With `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`, it switches to `@upstash/redis` so limits survive serverless instances and deploys.
+
+Set `REVASSIST_REQUIRE_DURABLE_RATE_LIMIT=true` in production if the app should fail fast instead of falling back to memory when Redis is missing.
+
 ## Eval Runner
 
 `npm run eval` runs the labeled regression suite in `lib/evals`. Each fixture checks profile routing, schema validity, summary relevance, add-on fit, compliance coverage, severity coverage, and follow-up SMS usefulness. CI fails if any fixture drops below its minimum score.
@@ -74,7 +80,6 @@ Use `npm run eval:json` when you want machine-readable results for dashboards or
 
 ## Production Backlog
 
-- Move rate limits to Redis or Vercel KV/Upstash.
 - Replace the portfolio demo session issuer with Clerk/Auth0/Vercel Marketplace auth.
 - Add live-model eval snapshots once provider credentials are configured.
 - Add deployment config and production environment docs.
