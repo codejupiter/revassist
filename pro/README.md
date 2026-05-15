@@ -4,7 +4,7 @@ Fullstack AI deal desk OS for powersports dealership F&I teams.
 
 This app is the production-grade successor to the browser-only RevAssist demo. It keeps local development safe by defaulting to deterministic mock streaming, but the server route is wired for live AI generation through the Vercel AI SDK when gateway credentials are present.
 
-Production deployment: [https://revassist-pro.vercel.app](https://revassist-pro.vercel.app)
+Production deployment: [https://revassist-pro.vercel.app](https://revassist-pro.vercel.app). The live Vercel project is connected to Neon Postgres and Upstash Redis, with mock AI mode kept on until provider-backed eval snapshots are ready.
 
 ## What Is Implemented
 
@@ -101,6 +101,5 @@ Use `npm run eval:report` to refresh the GitHub-readable [eval baseline report](
 ## Production Backlog
 
 - Replace the portfolio demo session issuer with Clerk/Auth0/Vercel Marketplace auth.
-- Connect Neon and Upstash resources to the Vercel project, then enable durable history/rate-limit assertions.
 - Add live-model eval snapshots once provider credentials are configured.
 - Add OpenTelemetry or provider-backed error tracking after the first Vercel deployment.

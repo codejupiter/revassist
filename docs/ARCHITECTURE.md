@@ -1,6 +1,6 @@
 # RevAssist Architecture
 
-RevAssist is a focused AI workflow product for powersports dealership finance and insurance teams. The public demo runs in browser-only mock mode so it can be deployed safely on GitHub Pages, and `pro/` now contains the Next.js fullstack foundation for the production version: a deal-note intake surface, signed session claims, a schema-locked streaming API, rate limiting, audit events, Postgres-ready deal history, and CI-backed tests.
+RevAssist is a focused AI workflow product for powersports dealership finance and insurance teams. The public demo runs in browser-only mock mode so it can be deployed safely on GitHub Pages, and `pro/` now contains the deployed Next.js fullstack foundation for the production version: a deal-note intake surface, signed session claims, a schema-locked streaming API, Upstash-backed rate limiting, audit events, Neon-backed deal history, and CI-backed tests.
 
 For a portfolio-style narrative of the Pro app, see [RevAssist Pro Case Study](case-studies/revassist-pro.md).
 

@@ -18,11 +18,15 @@ This runbook describes how to deploy RevAssist Pro as a production-shaped Vercel
 - Vercel project: `revassist-pro`.
 - Production alias: [https://revassist-pro.vercel.app](https://revassist-pro.vercel.app).
 - Current launch mode: `REVASSIST_AI_MODE=mock`.
-- Current storage mode: in-memory repository and in-memory rate limiter because no Neon or Upstash resources are connected to the project yet.
+- Current storage mode: Neon Postgres and Upstash Redis with `REVASSIST_REQUIRE_DATABASE=true` and `REVASSIST_REQUIRE_DURABLE_RATE_LIMIT=true`.
 - Health check: `https://revassist-pro.vercel.app/api/health` returns `{ "ok": true, "service": "revassist-pro", "mode": "mock" }`.
 - Remote smoke command: `PLAYWRIGHT_BASE_URL=https://revassist-pro.vercel.app npm run smoke`.
+- Durable remote smoke command: `PLAYWRIGHT_BASE_URL=https://revassist-pro.vercel.app PLAYWRIGHT_EXPECT_DURABLE_HISTORY=true npm run smoke`.
+- Neon resource: `revassist-pro-db` on the Neon Free plan.
+- Upstash resource: `revassist-pro-redis` on the Upstash Redis Free plan.
+- Latest storage-backed deployment inspected: `dpl_87FiHZEpbCusJsUvYf9A5FJG7iwY`.
 
-Neon and Upstash Marketplace integrations are installed at the account level, but no resources are connected to this project yet. Create/connect the Neon database and Upstash Redis resource from the Vercel dashboard Storage/Marketplace flow, pull env vars, apply `db/schema.sql`, then set `REVASSIST_REQUIRE_DATABASE=true` and `REVASSIST_REQUIRE_DURABLE_RATE_LIMIT=true`.
+The Neon schema in `db/schema.sql` has been applied. The API has been verified to return `x-ratelimit-store: redis` from the live deployment.
 
 ## Required Services
 
