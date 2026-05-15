@@ -33,6 +33,8 @@ Copy `.env.example` to `.env.local` when adding live credentials or Postgres. Lo
 
 For production rollout, see [Deployment Runbook](docs/DEPLOYMENT.md).
 
+For the product and interview narrative, see [RevAssist Pro Case Study](../docs/case-studies/revassist-pro.md).
+
 ## Validation
 
 ```bash
