@@ -65,7 +65,7 @@ export default function RevAssist() {
     <div className="min-h-screen bg-[#0a0a0a] text-zinc-100 font-sans">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
-        .font-display { font-family: 'Barlow Condensed', 'Inter', sans-serif; letter-spacing: -0.01em; }
+        .font-display { font-family: 'Barlow Condensed', 'Inter', sans-serif; letter-spacing: 0; }
         .font-body { font-family: 'Inter', system-ui, sans-serif; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         .glow { box-shadow: 0 0 32px rgba(249, 115, 22, 0.22), inset 0 1px 0 rgba(255,255,255,0.12); }
@@ -109,7 +109,7 @@ export default function RevAssist() {
                 <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-orange-400 ring-2 ring-[#0a0a0a]"></span>
               </div>
               <div>
-                <div className="font-display font-black text-2xl leading-none tracking-tight uppercase">
+                <div className="font-display font-black text-2xl leading-none uppercase">
                   Rev<span className="text-orange-500">Assist</span>
                 </div>
                 <div className="font-mono text-[9px] text-zinc-500 mt-1 uppercase tracking-[0.2em]">Deal Desk OS · Powersports F&amp;I</div>
@@ -132,14 +132,14 @@ export default function RevAssist() {
           </div>
         </header>
 
-        <div className="max-w-7xl mx-auto px-6 py-10">
+        <main data-testid="app-shell" className="max-w-7xl mx-auto px-6 py-10">
           {/* Hero */}
           <div className="mb-8">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-sm border-l-2 border-orange-500 bg-orange-500/5 text-orange-400 text-[11px] font-mono uppercase tracking-[0.18em] mb-5">
               <span className="w-1 h-1 rounded-full bg-orange-500"></span>
               Deal-desk software · for F&amp;I managers
             </div>
-            <h1 className="font-display font-black text-6xl md:text-7xl leading-[0.95] mb-4 uppercase tracking-tight">
+            <h1 className="font-display font-black text-6xl md:text-7xl leading-[0.95] mb-4 uppercase">
               Close more deals. <br />
               <span className="text-orange-500">Type a hell of a lot less.</span>
             </h1>
@@ -182,6 +182,8 @@ export default function RevAssist() {
               <textarea
                 value={input}
                 onChange={e => setInput(e.target.value)}
+                aria-label="Deal notes"
+                data-testid="deal-notes-input"
                 placeholder="Customer wants a 2024 Yamaha YZF-R1, $2k down, 60mo, 720 FICO..."
                 className="w-full h-48 bg-transparent p-5 text-sm leading-relaxed text-zinc-200 placeholder:text-zinc-600 focus:outline-none font-mono resize-none"
               />
@@ -190,6 +192,7 @@ export default function RevAssist() {
                 <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-wider self-center mr-1">Try:</span>
                 {SAMPLE_DEALS.map((s, i) => (
                   <button
+                    type="button"
                     key={i}
                     onClick={() => setInput(s.text)}
                     className="px-2.5 py-1 text-[11px] font-mono rounded border border-zinc-800 hover:border-orange-500/50 hover:text-orange-500 text-zinc-500 transition-colors"
@@ -204,6 +207,7 @@ export default function RevAssist() {
                   {latency != null && !streaming && <span>↳ Generated in {(latency / 1000).toFixed(1)}s · ~{Math.round(rawOutput.length / 4)} tokens</span>}
                   {(rawOutput || input) && !streaming && (
                     <button
+                      type="button"
                       onClick={() => { setInput(""); setRawOutput(""); setError(null); setLatency(null); }}
                       className="text-zinc-600 hover:text-zinc-300 transition uppercase tracking-wider text-[10px]"
                     >
@@ -212,8 +216,10 @@ export default function RevAssist() {
                   )}
                 </div>
                 <button
+                  type="button"
                   onClick={runDeal}
                   disabled={streaming || !input.trim()}
+                  data-testid="run-deal-button"
                   className="group inline-flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-400 disabled:bg-zinc-800 disabled:text-zinc-600 text-black font-display font-semibold text-sm rounded-lg transition-all glow disabled:glow-none disabled:shadow-none"
                 >
                   {streaming ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
@@ -231,6 +237,7 @@ export default function RevAssist() {
                 </div>
                 {parsed && (
                   <button
+                    type="button"
                     onClick={() => {
                       navigator.clipboard?.writeText(buildCopyText(parsed));
                     }}
@@ -241,7 +248,12 @@ export default function RevAssist() {
                 )}
               </div>
 
-              <div ref={outputRef} className="p-5 h-[500px] overflow-y-auto">
+              <div
+                ref={outputRef}
+                data-testid="output-panel"
+                aria-live="polite"
+                className="p-5 h-[500px] overflow-y-auto"
+              >
                 {error && (
                   <div className="text-red-400 text-sm font-mono p-4 border border-red-400/30 bg-red-400/5 rounded">
                     {error}
@@ -280,7 +292,7 @@ export default function RevAssist() {
                   <div className="space-y-5">
                     {/* Summary */}
                     {parsed.summary && (
-                      <section>
+                      <section data-testid="deal-summary">
                         <div className="flex items-center gap-2 mb-2">
                           <div className="w-1 h-4 bg-orange-500 rounded-full" />
                           <h3 className="font-display font-semibold text-sm uppercase tracking-wider text-zinc-300">Deal Summary</h3>
@@ -291,7 +303,7 @@ export default function RevAssist() {
 
                     {/* Add-ons */}
                     {parsed.addons?.length > 0 && (
-                      <section>
+                      <section data-testid="addons-list">
                         <div className="flex items-center gap-2 mb-2">
                           <DollarSign className="w-4 h-4 text-orange-500" />
                           <h3 className="font-display font-semibold text-sm uppercase tracking-wider text-zinc-300">Suggested Add-Ons</h3>
@@ -312,7 +324,7 @@ export default function RevAssist() {
 
                     {/* Compliance */}
                     {parsed.compliance?.length > 0 && (
-                      <section>
+                      <section data-testid="compliance-list">
                         <div className="flex items-center gap-2 mb-2">
                           <AlertCircle className="w-4 h-4 text-amber-400" />
                           <h3 className="font-display font-semibold text-sm uppercase tracking-wider text-zinc-300">Compliance Flags</h3>
@@ -330,7 +342,7 @@ export default function RevAssist() {
 
                     {/* SMS */}
                     {parsed.follow_up_sms && (
-                      <section>
+                      <section data-testid="follow-up-sms">
                         <div className="flex items-center gap-2 mb-2">
                           <MessageSquare className="w-4 h-4 text-orange-500" />
                           <h3 className="font-display font-semibold text-sm uppercase tracking-wider text-zinc-300">Customer Follow-Up</h3>
@@ -338,6 +350,7 @@ export default function RevAssist() {
                         <div className="bg-orange-500/5 border-l-2 border-orange-500 px-4 py-3 rounded-r">
                           <p className="text-sm text-zinc-100 leading-relaxed">{parsed.follow_up_sms}</p>
                           <button
+                            type="button"
                             onClick={() => navigator.clipboard?.writeText(parsed.follow_up_sms)}
                             className="mt-2 text-[10px] font-mono uppercase tracking-wider text-orange-500 hover:text-orange-400"
                           >
@@ -399,7 +412,7 @@ export default function RevAssist() {
               <span>Status: <span className="text-emerald-500">Operational</span></span>
             </div>
           </footer>
-        </div>
+        </main>
       </div>
     </div>
   );

@@ -4,6 +4,9 @@ node_modules
 .DS_Store
 dist
 build
+smoke-dist
+playwright-report
+test-results
 *.log
 
 # Claude Code local config — local-only, machine-specific

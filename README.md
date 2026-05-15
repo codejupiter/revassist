@@ -8,6 +8,10 @@ Drop in raw deal notes, get back a structured deal summary, suggested F&I add-on
 
 ![RevAssist deal desk interface](docs/screenshots/revassist-home.png)
 
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md) — product boundary, current frontend architecture, production backend target, API contract, data model, safety, and eval strategy.
+
 ---
 
 ## Why this exists
@@ -53,6 +57,8 @@ For the production validation suite:
 npm run lint
 npm run test
 npm run build
+npx playwright install chromium
+npm run smoke
 ```
 
 ## Stack
@@ -63,6 +69,7 @@ npm run build
 - **Lucide React** for iconography
 - **Barlow Condensed + Inter + JetBrains Mono** type stack
 - **Vitest** coverage for deal routing, schema validation, partial JSON parsing, and export formatting
+- **Playwright** production smoke tests for the full deal workflow on desktop and mobile
 - **Streaming LLM backend** for structured JSON generation (production)
 - **Token-streaming UX** with partial-JSON parsing as content arrives
 
@@ -71,12 +78,13 @@ npm run build
 - **Isolated deal engine**: sample deals, mock response selection, schema validation, partial parsing, and copy/export formatting live in `src/lib/dealEngine.js` so the product logic can be tested independently of React.
 - **Schema-locked output**: the system prompt forces the model to return strict JSON. The frontend parses the stream incrementally and renders each section as soon as it's structurally valid.
 - **Optimistic partial render**: as tokens arrive, a parse attempt runs on every chunk. The first valid parse swaps the raw stream view for the structured render.
+- **Production backend path**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) documents the authenticated streaming API, data model, rate limits, audit logs, and evals needed to turn the browser demo into a SaaS workflow.
 - **Latency surfaced**: response time and token count are exposed in the UI for transparency.
 - **Three sample deals** (sportbike / UTV / PWC) included for fast testing.
 
 ## Deploy
 
-The `main` branch auto-deploys to GitHub Pages via [.github/workflows/deploy.yml](.github/workflows/deploy.yml). The workflow installs from lockfile, runs a production audit, lints, runs tests, builds the Vite bundle, then deploys the artifact. To enable:
+The `main` branch auto-deploys to GitHub Pages via [.github/workflows/deploy.yml](.github/workflows/deploy.yml). The workflow installs from lockfile, runs a production audit, lints, runs unit tests, builds the Vite bundle, runs Chromium smoke tests, then deploys the artifact. To enable:
 
 1. Push to `main`.
 2. In the repo: **Settings → Pages → Source: GitHub Actions**.

@@ -2,6 +2,8 @@
 
 The React + Vite frontend for RevAssist. See the [project README](../README.md) for what this is and why.
 
+For system design, backend migration, API contract, data model, safety, and eval strategy, see [../docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md).
+
 ## Run locally
 
 ```bash
@@ -19,6 +21,8 @@ Then open http://localhost:5173.
 | `npm run build` | Build a production bundle.                   |
 | `npm run test`  | Run the Vitest unit test suite.              |
 | `npm run test:watch` | Run Vitest in watch mode.              |
+| `npm run smoke` | Run production Playwright smoke tests.      |
+| `npm run smoke:ui` | Open the Playwright test runner UI.     |
 | `npm run preview` | Serve the production build locally.        |
 | `npm run lint`  | Lint the source with ESLint.                  |
 
@@ -29,6 +33,7 @@ Then open http://localhost:5173.
 - Tailwind CSS v4 via the `@tailwindcss/vite` plugin
 - Lucide icons
 - Vitest for product-logic coverage
+- Playwright for desktop/mobile production smoke coverage
 
 ## Mock mode
 
