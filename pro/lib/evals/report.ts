@@ -1,4 +1,5 @@
 import type { DealEvalResult, DealEvalSummary, EvalCategory } from "./scoring";
+import type { LiveEvalSnapshot } from "./live";
 
 const CATEGORY_LABELS = {
   routing: "Routing",
@@ -35,7 +36,7 @@ function formatCategoryCoverage(result: DealEvalResult) {
   }).join("; ");
 }
 
-function formatOpenRisks(results: DealEvalResult[]) {
+function formatOpenRisks(results: DealEvalResult[], emptyMessage = "- No failing checks in the deterministic baseline.") {
   const failedChecks = results.flatMap((result) =>
     result.checks
       .filter((check) => !check.passed)
@@ -43,7 +44,7 @@ function formatOpenRisks(results: DealEvalResult[]) {
   );
 
   if (failedChecks.length === 0) {
-    return "- No failing checks in the deterministic baseline.";
+    return emptyMessage;
   }
 
   return failedChecks.join("\n");
@@ -94,4 +95,70 @@ export function formatEvalMarkdownReport(
   ];
 
   return lines.join("\n");
+}
+
+export function formatLiveEvalSnapshotMarkdown(snapshot: LiveEvalSnapshot) {
+  const lines = [
+    "# RevAssist Pro Live Eval Snapshot",
+    "",
+    "This report captures provider-backed model behavior for the RevAssist Pro deal-analysis workflow. Unlike the deterministic baseline, this snapshot is expected to be refreshed only when model, prompt, provider, or policy behavior changes.",
+    "",
+    "## Summary",
+    "",
+    `- Generated at: ${snapshot.generatedAt}`,
+    `- Model: \`${snapshot.model}\``,
+    `- Prompt version: \`${snapshot.promptVersion}\``,
+    `- Auth mode: ${snapshot.authMode}`,
+    `- Pass rate: ${snapshot.summary.passCount}/${snapshot.summary.total}`,
+    `- Average score: ${snapshot.summary.averageScore}`,
+    `- Lowest score: ${snapshot.summary.minScore}`,
+    `- Result: ${formatResultStatus(snapshot.summary.passed)}`,
+    "",
+    "## Case Coverage",
+    "",
+    "| Case | Minimum | Score | Result | Latency | Category coverage |",
+    "| --- | ---: | ---: | --- | ---: | --- |",
+    ...snapshot.results.map(
+      (result) =>
+        `| ${escapeTableCell(result.id)} | ${result.minScore} | ${result.score} | ${formatResultStatus(
+          result.passed
+        )} | ${result.latencyMs}ms | ${escapeTableCell(formatCategoryCoverage(result))} |`
+    ),
+    "",
+    "## Open Risks",
+    "",
+    formatOpenRisks(snapshot.results, "- No failing checks in this live snapshot."),
+    "",
+    "## Snapshot Policy",
+    "",
+    "- Keep deterministic evals as the normal CI gate; use this snapshot as model/provider evidence.",
+    "- Refresh before enabling live AI by default, changing prompts, changing model routing, or adding jurisdiction-specific compliance expectations.",
+    "- Treat any score below the fixture minimum as a launch blocker until the prompt, model, or product rule is adjusted.",
+    "- Do not include raw customer data in live eval fixtures; all cases in this suite are synthetic."
+  ];
+
+  return lines.join("\n");
+}
+
+export function formatSkippedLiveEvalMarkdownReport(model: string, reason: string) {
+  return [
+    "# RevAssist Pro Live Eval Snapshot",
+    "",
+    "No provider-backed live snapshot has been captured for this checkout.",
+    "",
+    "## Status",
+    "",
+    "- Result: SKIPPED",
+    `- Intended model: \`${model}\``,
+    `- Reason: ${reason}`,
+    "",
+    "## How To Refresh",
+    "",
+    "```bash",
+    "vercel env pull .env.local --yes",
+    "npm run eval:live:report",
+    "```",
+    "",
+    "Use `npm run eval:live:required` when a missing provider credential should fail the command."
+  ].join("\n");
 }

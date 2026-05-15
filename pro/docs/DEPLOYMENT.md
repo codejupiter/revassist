@@ -88,6 +88,7 @@ npm run lint
 npm run typecheck
 npm run test
 npm run eval
+npm run eval:live:report
 npm run build
 npx playwright install chromium
 npm run smoke
@@ -100,6 +101,7 @@ Expected quality gates:
 - Unit tests cover auth/session signing, repository mapping, rate limits, schemas, and eval failure cases.
 - `npm run eval` should report `Pass rate: 5/5`.
 - `npm run eval:report` should refresh `docs/EVAL_BASELINE.md` when eval fixtures change.
+- `npm run eval:live:report` should refresh `docs/LIVE_EVAL_SNAPSHOT.md` before model/prompt changes. It skips safely if AI Gateway credentials or account setup are incomplete; use `npm run eval:live:required` for launch gates.
 - Smoke tests should pass on desktop and mobile Chromium.
 - Remote smoke tests should pass against the Vercel deployment URL before promotion or public sharing.
 - Set `PLAYWRIGHT_EXPECT_DURABLE_HISTORY=true` after Neon is configured so remote smoke tests also prove cross-function history/audit persistence.

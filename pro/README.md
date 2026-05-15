@@ -98,8 +98,10 @@ Use `npm run eval:json` when you want machine-readable results for dashboards or
 
 Use `npm run eval:report` to refresh the GitHub-readable [eval baseline report](docs/EVAL_BASELINE.md).
 
+Use `npm run eval:live:report` to refresh the provider-backed [live eval snapshot](docs/LIVE_EVAL_SNAPSHOT.md). It loads `.env.local`, uses Vercel AI Gateway OIDC or `AI_GATEWAY_API_KEY` when present, and skips safely when provider credentials or account setup are unavailable. Use `npm run eval:live:required` when missing live credentials or incomplete AI Gateway setup should fail the command.
+
 ## Production Backlog
 
 - Replace the portfolio demo session issuer with Clerk/Auth0/Vercel Marketplace auth.
-- Add live-model eval snapshots once provider credentials are configured.
+- Refresh live-model eval snapshots before changing prompts, model routing, or enabling live AI by default.
 - Add OpenTelemetry or provider-backed error tracking after the first Vercel deployment.

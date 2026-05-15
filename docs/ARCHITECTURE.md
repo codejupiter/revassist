@@ -181,6 +181,7 @@ The production app includes a first eval suite before using real customer workfl
 - Regression checks for malformed JSON and missing sections through `dealOutputSchema`.
 - CI gate through `npm run eval`, with JSON output available through `npm run eval:json` and a GitHub-readable baseline report through `npm run eval:report`.
 - Current deterministic baseline: [pro/docs/EVAL_BASELINE.md](../pro/docs/EVAL_BASELINE.md).
+- Provider-backed snapshots are captured through `npm run eval:live:report` and documented in [pro/docs/LIVE_EVAL_SNAPSHOT.md](../pro/docs/LIVE_EVAL_SNAPSHOT.md). They are intentionally separate from CI so model/provider drift is reviewed before launch gates.
 - Future live-model snapshots for provider-backed runs, latency budgets, and jurisdiction-specific compliance expectations.
 
 ## Interview Talking Points

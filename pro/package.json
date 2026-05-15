@@ -15,6 +15,10 @@
     "eval": "tsx scripts/run-evals.ts",
     "eval:json": "tsx scripts/run-evals.ts --json",
     "eval:report": "tsx scripts/run-evals.ts --report docs/EVAL_BASELINE.md",
+    "eval:live": "tsx scripts/run-live-evals.ts",
+    "eval:live:json": "tsx scripts/run-live-evals.ts --json",
+    "eval:live:report": "tsx scripts/run-live-evals.ts --report docs/LIVE_EVAL_SNAPSHOT.md",
+    "eval:live:required": "tsx scripts/run-live-evals.ts --require-live",
     "smoke": "playwright test",
     "smoke:ui": "playwright test --ui"
   },

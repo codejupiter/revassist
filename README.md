@@ -16,6 +16,7 @@ Drop in raw deal notes, get back a structured deal summary, suggested F&I add-on
 - [RevAssist Pro Case Study](docs/case-studies/revassist-pro.md) — product problem, architecture decisions, tradeoffs, security, evals, scalability, and interview talking points.
 - [RevAssist Pro](pro/README.md) — Next.js fullstack app with streaming API, signed session claims, Neon/Postgres persistence, schema validation, Upstash-backed rate limits, audit events, history, tests, and live AI mode.
 - [RevAssist Pro Eval Baseline](pro/docs/EVAL_BASELINE.md) — deterministic regression report for routing, schema validity, add-on relevance, compliance coverage, and SMS quality.
+- [RevAssist Pro Live Eval Snapshot](pro/docs/LIVE_EVAL_SNAPSHOT.md) — provider-backed eval snapshot workflow for model/prompt launch gates.
 - [RevAssist Pro Deployment](pro/docs/DEPLOYMENT.md) — Vercel, Neon, Upstash, env vars, observability, launch checklist, and rollback runbook.
 - [RevAssist Pro Auth Migration](pro/docs/AUTHENTICATION.md) — managed-auth migration plan for provider sessions, dealership membership, middleware, and tenant-safe claims.
 
