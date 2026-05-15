@@ -19,6 +19,10 @@ Drop in raw deal notes, get back a structured deal summary, suggested F&I add-on
 - [RevAssist Pro Live Eval Snapshot](pro/docs/LIVE_EVAL_SNAPSHOT.md) — provider-backed eval snapshot workflow for model/prompt launch gates.
 - [RevAssist Pro Deployment](pro/docs/DEPLOYMENT.md) — Vercel, Neon, Upstash, env vars, observability, launch checklist, and rollback runbook.
 - [RevAssist Pro Authentication](pro/docs/AUTHENTICATION.md) — managed-auth adapter and rollout plan for provider sessions, dealership membership, middleware, and tenant-safe claims.
+- [RevAssist Pro Release Checklist](pro/docs/RELEASE_CHECKLIST.md) — quality gates, public sharing checklist, rollback, and next release candidates.
+- [RevAssist Pro v0.1.0 Release Notes](docs/releases/revassist-pro-v0.1.0.md) — launch summary, engineering highlights, evidence links, and known limits.
+- [Changelog](CHANGELOG.md) — release history and known limitations.
+- [Security Policy](SECURITY.md) — supported surfaces, reporting path, and security posture.
 
 ---
 
@@ -90,6 +94,7 @@ npm run smoke
 - **Case-study narrative**: [docs/case-studies/revassist-pro.md](docs/case-studies/revassist-pro.md) explains the engineering decisions, tradeoffs, and interview story behind the Pro app.
 - **Eval baseline**: [pro/docs/EVAL_BASELINE.md](pro/docs/EVAL_BASELINE.md) turns the regression suite into a readable quality report for reviewers.
 - **Authentication**: [pro/docs/AUTHENTICATION.md](pro/docs/AUTHENTICATION.md) explains how signed demo sessions and managed provider JWTs map into one tenant-safe claim contract.
+- **Release readiness**: [pro/docs/RELEASE_CHECKLIST.md](pro/docs/RELEASE_CHECKLIST.md) documents launch gates, rollback, and next release candidates.
 - **Latency surfaced**: response time and token count are exposed in the UI for transparency.
 - **Three sample deals** (sportbike / UTV / PWC) included for fast testing.
 

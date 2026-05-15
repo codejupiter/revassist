@@ -1,0 +1,32 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/app"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    groups:
+      app-dependencies:
+        patterns:
+          - "*"
+  - package-ecosystem: "npm"
+    directory: "/pro"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:15"
+    groups:
+      pro-dependencies:
+        patterns:
+          - "*"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:30"
+    groups:
+      github-actions:
+        patterns:
+          - "*"

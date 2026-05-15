@@ -37,6 +37,8 @@ For production rollout, see [Deployment Runbook](docs/DEPLOYMENT.md).
 
 For the managed-auth adapter and provider rollout path, see [Authentication](docs/AUTHENTICATION.md).
 
+For release gates and public sharing readiness, see [Release Checklist](docs/RELEASE_CHECKLIST.md).
+
 For the product and interview narrative, see [RevAssist Pro Case Study](../docs/case-studies/revassist-pro.md).
 
 ## Validation
@@ -101,6 +103,8 @@ Use `npm run eval:json` when you want machine-readable results for dashboards or
 Use `npm run eval:report` to refresh the GitHub-readable [eval baseline report](docs/EVAL_BASELINE.md).
 
 Use `npm run eval:live:report` to refresh the provider-backed [live eval snapshot](docs/LIVE_EVAL_SNAPSHOT.md). It loads `.env.local`, uses Vercel AI Gateway OIDC or `AI_GATEWAY_API_KEY` when present, and skips safely when provider credentials or account setup are unavailable. Use `npm run eval:live:required` when missing live credentials or incomplete AI Gateway setup should fail the command.
+
+Before publishing a GitHub release or sharing a new production deployment broadly, run the [release checklist](docs/RELEASE_CHECKLIST.md).
 
 ## Production Backlog
 

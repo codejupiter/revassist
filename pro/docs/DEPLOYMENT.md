@@ -41,6 +41,8 @@ Apply the schema in `db/schema.sql` before enabling the Postgres repository in p
 
 For the managed-auth adapter and hosted-provider rollout, see [Authentication](AUTHENTICATION.md).
 
+For release gates and public sharing readiness, see [Release Checklist](RELEASE_CHECKLIST.md).
+
 ## Environment Variables
 
 Server-only variables:
@@ -112,6 +114,7 @@ Expected quality gates:
 - Smoke tests should pass on desktop and mobile Chromium.
 - Remote smoke tests should pass against the Vercel deployment URL before promotion or public sharing.
 - Set `PLAYWRIGHT_EXPECT_DURABLE_HISTORY=true` after Neon is configured so remote smoke tests also prove cross-function history/audit persistence.
+- The release checklist should be updated before publishing a GitHub release or announcing a new production milestone.
 
 ## Vercel Deployment
 

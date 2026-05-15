@@ -1,0 +1,38 @@
+name: Feature request
+description: Propose a product or engineering improvement.
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user or engineering problem should this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: Describe the smallest useful version of the feature.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - AI workflow
+        - Authentication
+        - Persistence/history
+        - Rate limiting/security
+        - UI/UX
+        - Documentation
+        - Testing/CI
+    validations:
+      required: true
+  - type: textarea
+    id: tradeoffs
+    attributes:
+      label: Tradeoffs
+      description: What risks, complexity, or alternatives should be considered?
