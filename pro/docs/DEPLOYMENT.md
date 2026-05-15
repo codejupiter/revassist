@@ -12,6 +12,18 @@ This runbook describes how to deploy RevAssist Pro as a production-shaped Vercel
 - AI mode: deterministic mock by default; live mode when AI Gateway or provider credentials are present.
 - Public demo safety: the browser-only GitHub Pages demo remains separate from the Pro app.
 
+## Current Production Deployment
+
+- Vercel team: `codejupiters-projects`.
+- Vercel project: `revassist-pro`.
+- Production alias: [https://revassist-pro.vercel.app](https://revassist-pro.vercel.app).
+- Current launch mode: `REVASSIST_AI_MODE=mock`.
+- Current storage mode: in-memory repository and in-memory rate limiter because no Neon or Upstash resources are connected to the project yet.
+- Health check: `https://revassist-pro.vercel.app/api/health` returns `{ "ok": true, "service": "revassist-pro", "mode": "mock" }`.
+- Remote smoke command: `PLAYWRIGHT_BASE_URL=https://revassist-pro.vercel.app npm run smoke`.
+
+Neon and Upstash Marketplace integrations are installed at the account level, but no resources are connected to this project yet. Create/connect the Neon database and Upstash Redis resource from the Vercel dashboard Storage/Marketplace flow, pull env vars, apply `db/schema.sql`, then set `REVASSIST_REQUIRE_DATABASE=true` and `REVASSIST_REQUIRE_DURABLE_RATE_LIMIT=true`.
+
 ## Required Services
 
 Provision these through the Vercel Marketplace when possible so environment variables are injected into the linked project:

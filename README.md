@@ -6,6 +6,8 @@ Drop in raw deal notes, get back a structured deal summary, suggested F&I add-on
 
 **▶ [Live demo](https://codejupiter.github.io/revassist/)** · No login, no API key — runs entirely in your browser.
 
+**▲ [RevAssist Pro on Vercel](https://revassist-pro.vercel.app)** · Next.js fullstack deployment with signed sessions, streaming API, eval-gated mock AI mode, and remote smoke coverage.
+
 ![RevAssist deal desk interface](docs/screenshots/revassist-home.png)
 
 ## Documentation
@@ -102,7 +104,7 @@ For root-hosted deploys (Vercel, Netlify), set `VITE_BASE_PATH=/` in the build e
 
 ## What's next
 
-- Deploy RevAssist Pro on Vercel with Neon and Upstash Marketplace integrations.
+- Connect Neon and Upstash Marketplace resources after account-level resource provisioning is complete.
 - Replace the portfolio demo session issuer with a managed auth provider.
 - Add DMS / credit-bureau integrations to pre-fill from a real lead.
 - Add voice input for the deal desk.
