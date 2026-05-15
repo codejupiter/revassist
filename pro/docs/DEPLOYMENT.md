@@ -24,7 +24,7 @@ This runbook describes how to deploy RevAssist Pro as a production-shaped Vercel
 - Durable remote smoke command: `PLAYWRIGHT_BASE_URL=https://revassist-pro.vercel.app PLAYWRIGHT_EXPECT_DURABLE_HISTORY=true npm run smoke`.
 - Neon resource: `revassist-pro-db` on the Neon Free plan.
 - Upstash resource: `revassist-pro-redis` on the Upstash Redis Free plan.
-- Latest storage-backed deployment inspected: `dpl_87FiHZEpbCusJsUvYf9A5FJG7iwY`.
+- Storage-backed production deployments are inspected with `vercel inspect https://revassist-pro.vercel.app`.
 
 The Neon schema in `db/schema.sql` has been applied. The API has been verified to return `x-ratelimit-store: redis` from the live deployment.
 
