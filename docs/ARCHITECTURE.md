@@ -70,6 +70,7 @@ The `pro/` app is production-shaped but CI-safe:
 - It uses signed `httpOnly` cookies for tenant/operator session claims.
 - It records deal runs and audit events through a repository boundary backed by Neon Postgres when `DATABASE_URL` is present.
 - It switches rate limits from in-memory local mode to Upstash Redis when Redis REST credentials are configured.
+- It emits structured JSON logs for auth, history, analysis, rate-limit, and failure events without logging raw deal notes.
 - It includes a labeled eval suite for profile routing, add-on relevance, compliance coverage, severity coverage, and customer SMS quality.
 - It includes unit tests and Playwright smoke tests for the full generated workflow.
 
@@ -166,6 +167,7 @@ The goal is to make every generated output explainable after the fact without st
 - Fall back to a non-streaming completion if SSE fails.
 - Block output if required sections are missing or malformed.
 - Keep customer PII out of analytics and external logs.
+- Use structured server logs for request ID, tenant, run ID, model, latency, and rate-limit store.
 
 ## Evaluation Strategy
 

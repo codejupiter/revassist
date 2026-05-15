@@ -7,6 +7,7 @@ import { analyzeRateLimiter } from "@/lib/server/rate-limit";
 import { getDealRepository } from "@/lib/server/repository";
 import { getSessionFromRequest } from "@/lib/server/auth";
 import { encodeSse } from "@/lib/server/stream-events";
+import { logError, logInfo, logWarn, requestContext } from "@/lib/server/logging";
 
 export const runtime = "nodejs";
 
@@ -68,9 +69,11 @@ async function streamLiveOutput(
 }
 
 export async function POST(request: Request) {
+  const context = requestContext(request, "POST /api/deals/analyze");
   const session = getSessionFromRequest(request);
 
   if (!session) {
+    logWarn("deals.analyze.unauthorized", context);
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -79,10 +82,22 @@ export async function POST(request: Request) {
   const rate = await analyzeRateLimiter.check(rateKey, RATE_LIMIT, RATE_WINDOW_MS).catch(() => null);
 
   if (!rate) {
+    logError("deals.analyze.rate_limit_unavailable", {
+      ...context,
+      dealerId: session.dealerId,
+      userId: session.userId
+    });
     return NextResponse.json({ error: "Rate limit service unavailable" }, { status: 503 });
   }
 
   if (!rate.allowed) {
+    logWarn("deals.analyze.rate_limited", {
+      ...context,
+      dealerId: session.dealerId,
+      userId: session.userId,
+      store: rate.store,
+      resetAt: rate.resetAt
+    });
     await getDealRepository().addAudit({
       runId: "rate_limited",
       type: "deal.run.rate_limited",
@@ -108,6 +123,12 @@ export async function POST(request: Request) {
 
   const payload = clientDealRequestSchema.safeParse(await request.json().catch(() => null));
   if (!payload.success) {
+    logWarn("deals.analyze.invalid_request", {
+      ...context,
+      dealerId: session.dealerId,
+      userId: session.userId,
+      issues: Object.keys(payload.error.flatten().fieldErrors).join(",")
+    });
     return NextResponse.json(
       { error: "Invalid deal request", issues: payload.error.flatten().fieldErrors },
       { status: 400 }
@@ -129,6 +150,17 @@ export async function POST(request: Request) {
     model
   });
   const startedAt = performance.now();
+
+  logInfo("deals.analyze.started", {
+    ...context,
+    runId: run.id,
+    dealerId: body.dealerId,
+    userId: body.operatorId,
+    mode: live ? "live" : "mock",
+    model,
+    rateLimitStore: rate.store,
+    rateLimitRemaining: rate.remaining
+  });
 
   await repository.addAudit({
     runId: run.id,
@@ -159,6 +191,16 @@ export async function POST(request: Request) {
           dealerId: body.dealerId,
           detail: { latencyMs, blocks: output.compliance.filter((flag) => flag.severity === "block").length }
         });
+        logInfo("deals.analyze.completed", {
+          ...context,
+          runId: run.id,
+          dealerId: body.dealerId,
+          userId: body.operatorId,
+          mode: live ? "live" : "mock",
+          model,
+          latencyMs,
+          complianceBlocks: output.compliance.filter((flag) => flag.severity === "block").length
+        });
         controller.enqueue(encodeSse({ type: "final", runId: run.id, output, latencyMs }));
       } catch (error) {
         const message = error instanceof Error ? error.message : "Unable to analyze deal.";
@@ -170,6 +212,15 @@ export async function POST(request: Request) {
           actorId: body.operatorId,
           dealerId: body.dealerId,
           detail: { message }
+        });
+        logError("deals.analyze.failed", {
+          ...context,
+          runId: run.id,
+          dealerId: body.dealerId,
+          userId: body.operatorId,
+          mode: live ? "live" : "mock",
+          model,
+          error: message
         });
         controller.enqueue(encodeSse({ type: "error", runId: run.id, message }));
       } finally {

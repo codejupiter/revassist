@@ -12,6 +12,7 @@ Drop in raw deal notes, get back a structured deal summary, suggested F&I add-on
 
 - [Architecture](docs/ARCHITECTURE.md) — product boundary, current frontend architecture, production backend target, API contract, data model, safety, and eval strategy.
 - [RevAssist Pro](pro/README.md) — Next.js fullstack app with streaming API, signed session claims, Postgres-ready persistence, schema validation, rate limits, audit events, history, tests, and live AI mode.
+- [RevAssist Pro Deployment](pro/docs/DEPLOYMENT.md) — Vercel, Neon, Upstash, env vars, observability, launch checklist, and rollback runbook.
 
 ---
 
@@ -95,7 +96,7 @@ For root-hosted deploys (Vercel, Netlify), set `VITE_BASE_PATH=/` in the build e
 
 ## What's next
 
-- Provision Neon and enable the RevAssist Pro Postgres repository in production.
+- Deploy RevAssist Pro on Vercel with Neon and Upstash Marketplace integrations.
 - Replace the portfolio demo session issuer with a managed auth provider.
 - Add DMS / credit-bureau integrations to pre-fill from a real lead.
 - Add voice input for the deal desk.

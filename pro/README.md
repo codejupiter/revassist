@@ -31,6 +31,8 @@ Open `http://localhost:3010`.
 
 Copy `.env.example` to `.env.local` when adding live credentials or Postgres. Local development works without secrets.
 
+For production rollout, see [Deployment Runbook](docs/DEPLOYMENT.md).
+
 ## Validation
 
 ```bash
@@ -82,4 +84,4 @@ Use `npm run eval:json` when you want machine-readable results for dashboards or
 
 - Replace the portfolio demo session issuer with Clerk/Auth0/Vercel Marketplace auth.
 - Add live-model eval snapshots once provider credentials are configured.
-- Add deployment config and production environment docs.
+- Add OpenTelemetry or provider-backed error tracking after the first Vercel deployment.
