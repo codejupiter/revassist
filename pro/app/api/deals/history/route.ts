@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 
 export async function GET(request: Request) {
   const context = requestContext(request, "GET /api/deals/history");
-  const session = getSessionFromRequest(request);
+  const session = await getSessionFromRequest(request);
 
   if (!session) {
     logWarn("deals.history.unauthorized", context);

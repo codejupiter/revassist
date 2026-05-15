@@ -6,7 +6,7 @@ Drop in raw deal notes, get back a structured deal summary, suggested F&I add-on
 
 **▶ [Live demo](https://codejupiter.github.io/revassist/)** · No login, no API key — runs entirely in your browser.
 
-**▲ [RevAssist Pro on Vercel](https://revassist-pro.vercel.app)** · Next.js fullstack deployment with signed sessions, streaming API, Neon persistence, Upstash rate limits, eval-gated mock AI mode, and remote smoke coverage.
+**▲ [RevAssist Pro on Vercel](https://revassist-pro.vercel.app)** · Next.js fullstack deployment with signed demo sessions, OIDC/JWKS managed-auth adapter, streaming API, Neon persistence, Upstash rate limits, eval-gated mock AI mode, and remote smoke coverage.
 
 ![RevAssist deal desk interface](docs/screenshots/revassist-home.png)
 
@@ -14,11 +14,11 @@ Drop in raw deal notes, get back a structured deal summary, suggested F&I add-on
 
 - [Architecture](docs/ARCHITECTURE.md) — product boundary, current frontend architecture, production backend target, API contract, data model, safety, and eval strategy.
 - [RevAssist Pro Case Study](docs/case-studies/revassist-pro.md) — product problem, architecture decisions, tradeoffs, security, evals, scalability, and interview talking points.
-- [RevAssist Pro](pro/README.md) — Next.js fullstack app with streaming API, signed session claims, Neon/Postgres persistence, schema validation, Upstash-backed rate limits, audit events, history, tests, and live AI mode.
+- [RevAssist Pro](pro/README.md) — Next.js fullstack app with streaming API, signed demo sessions, OIDC/JWKS managed-auth adapter, Neon/Postgres persistence, schema validation, Upstash-backed rate limits, audit events, history, tests, and live AI mode.
 - [RevAssist Pro Eval Baseline](pro/docs/EVAL_BASELINE.md) — deterministic regression report for routing, schema validity, add-on relevance, compliance coverage, and SMS quality.
 - [RevAssist Pro Live Eval Snapshot](pro/docs/LIVE_EVAL_SNAPSHOT.md) — provider-backed eval snapshot workflow for model/prompt launch gates.
 - [RevAssist Pro Deployment](pro/docs/DEPLOYMENT.md) — Vercel, Neon, Upstash, env vars, observability, launch checklist, and rollback runbook.
-- [RevAssist Pro Auth Migration](pro/docs/AUTHENTICATION.md) — managed-auth migration plan for provider sessions, dealership membership, middleware, and tenant-safe claims.
+- [RevAssist Pro Authentication](pro/docs/AUTHENTICATION.md) — managed-auth adapter and rollout plan for provider sessions, dealership membership, middleware, and tenant-safe claims.
 
 ---
 
@@ -89,7 +89,7 @@ npm run smoke
 - **Production backend path**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) documents the authenticated streaming API, data model, rate limits, audit logs, and evals needed to turn the browser demo into a SaaS workflow.
 - **Case-study narrative**: [docs/case-studies/revassist-pro.md](docs/case-studies/revassist-pro.md) explains the engineering decisions, tradeoffs, and interview story behind the Pro app.
 - **Eval baseline**: [pro/docs/EVAL_BASELINE.md](pro/docs/EVAL_BASELINE.md) turns the regression suite into a readable quality report for reviewers.
-- **Auth migration**: [pro/docs/AUTHENTICATION.md](pro/docs/AUTHENTICATION.md) explains how the demo session issuer becomes managed, tenant-aware auth.
+- **Authentication**: [pro/docs/AUTHENTICATION.md](pro/docs/AUTHENTICATION.md) explains how signed demo sessions and managed provider JWTs map into one tenant-safe claim contract.
 - **Latency surfaced**: response time and token count are exposed in the UI for transparency.
 - **Three sample deals** (sportbike / UTV / PWC) included for fast testing.
 
@@ -105,7 +105,7 @@ For root-hosted deploys (Vercel, Netlify), set `VITE_BASE_PATH=/` in the build e
 
 ## What's next
 
-- Replace the portfolio demo session issuer with a managed auth provider.
+- Connect a hosted sign-in UI and provider org sync to the managed-auth adapter.
 - Add provider-backed live eval snapshots before enabling live AI by default.
 - Add DMS / credit-bureau integrations to pre-fill from a real lead.
 - Add voice input for the deal desk.

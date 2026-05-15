@@ -1,6 +1,6 @@
 # RevAssist Architecture
 
-RevAssist is a focused AI workflow product for powersports dealership finance and insurance teams. The public demo runs in browser-only mock mode so it can be deployed safely on GitHub Pages, and `pro/` now contains the deployed Next.js fullstack foundation for the production version: a deal-note intake surface, signed session claims, a schema-locked streaming API, Upstash-backed rate limiting, audit events, Neon-backed deal history, and CI-backed tests.
+RevAssist is a focused AI workflow product for powersports dealership finance and insurance teams. The public demo runs in browser-only mock mode so it can be deployed safely on GitHub Pages, and `pro/` now contains the deployed Next.js fullstack foundation for the production version: a deal-note intake surface, signed demo sessions, an OIDC/JWKS managed-auth adapter, a schema-locked streaming API, Upstash-backed rate limiting, audit events, Neon-backed deal history, and CI-backed tests.
 
 For a portfolio-style narrative of the Pro app, see [RevAssist Pro Case Study](case-studies/revassist-pro.md).
 
@@ -42,7 +42,9 @@ Keeping this logic out of React makes the workflow testable and makes the future
 
 ```mermaid
 flowchart TD
-  Client["Next.js deal workbench"] --> Auth["signed httpOnly session"]
+  Client["Next.js deal workbench"] --> Auth["SessionClaims adapter"]
+  Auth --> DemoAuth["signed demo cookie"]
+  Auth --> ManagedAuth["OIDC/JWKS provider JWT"]
   Auth --> API["POST /api/deals/analyze"]
   API --> Schema["Zod request validation"]
   Schema --> Rate["tenant/user rate limit"]
@@ -69,8 +71,9 @@ The `pro/` app is production-shaped but CI-safe:
 - It switches to live AI only when `REVASSIST_AI_MODE=live` and gateway/provider credentials are available.
 - It uses the Vercel AI SDK v6 structured-output path with `streamText` and `Output.object`.
 - It validates request payloads, model outputs, run records, and audit events with Zod.
-- It uses signed `httpOnly` cookies for tenant/operator session claims.
-- It documents the managed-auth migration path in [pro/docs/AUTHENTICATION.md](../pro/docs/AUTHENTICATION.md), with the current signed demo session treated as a replaceable adapter.
+- It uses a provider-agnostic `SessionClaims` boundary for tenant/operator identity.
+- It accepts signed `httpOnly` demo cookies for portfolio/local mode and OIDC/JWKS-verified provider JWTs for managed auth environments.
+- It documents the managed-auth adapter and hosted-provider rollout path in [pro/docs/AUTHENTICATION.md](../pro/docs/AUTHENTICATION.md).
 - It records deal runs and audit events through a repository boundary backed by Neon Postgres when `DATABASE_URL` is present.
 - It switches rate limits from in-memory local mode to Upstash Redis when Redis REST credentials are configured.
 - It emits structured JSON logs for auth, history, analysis, rate-limit, and failure events without logging raw deal notes.
@@ -102,7 +105,7 @@ Production responsibilities move behind an authenticated API:
 - Store deal runs, operator actions, latency, model version, and compliance flags.
 - Rate-limit by user, tenant, dealership location, and client IP with durable Redis-backed counters in production.
 - Redact sensitive customer data before logs leave the application boundary.
-- Keep server-owned tenant identity in signed sessions or managed auth claims, never in trusted client fields.
+- Keep server-owned tenant identity in signed demo sessions or managed auth claims, never in trusted client fields.
 
 ## API Contract
 
@@ -115,7 +118,7 @@ Request:
 }
 ```
 
-Dealer and operator identity come from signed session claims, not client-submitted request fields.
+Dealer and operator identity come from server-owned session claims, not client-submitted request fields.
 
 Streaming event shape:
 

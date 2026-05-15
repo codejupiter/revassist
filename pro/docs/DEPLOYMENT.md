@@ -1,6 +1,6 @@
 # RevAssist Pro Deployment Runbook
 
-This runbook describes how to deploy RevAssist Pro as a production-shaped Vercel app with Neon Postgres, Upstash Redis, server-owned session claims, structured logs, and rollback procedures.
+This runbook describes how to deploy RevAssist Pro as a production-shaped Vercel app with Neon Postgres, Upstash Redis, server-owned session claims, optional managed auth, structured logs, and rollback procedures.
 
 ## Deployment Shape
 
@@ -10,6 +10,7 @@ This runbook describes how to deploy RevAssist Pro as a production-shaped Vercel
 - Database: Neon Postgres through the Vercel Marketplace.
 - Rate limit store: Upstash Redis through the Vercel Marketplace.
 - AI mode: deterministic mock by default; live mode when AI Gateway or provider credentials are present.
+- Auth mode: signed demo sessions by default; OIDC/JWKS-managed provider sessions when configured.
 - Public demo safety: the browser-only GitHub Pages demo remains separate from the Pro app.
 
 ## Current Production Deployment
@@ -38,7 +39,7 @@ Provision these through the Vercel Marketplace when possible so environment vari
 
 Apply the schema in `db/schema.sql` before enabling the Postgres repository in production.
 
-For the managed-auth migration from signed demo sessions to provider-backed sessions, see [Authentication Migration](AUTHENTICATION.md).
+For the managed-auth adapter and hosted-provider rollout, see [Authentication](AUTHENTICATION.md).
 
 ## Environment Variables
 
@@ -47,6 +48,12 @@ Server-only variables:
 | Variable | Production | Preview | Local |
 | --- | --- | --- | --- |
 | `REVASSIST_SESSION_SECRET` | Required | Required | Optional |
+| `REVASSIST_ALLOW_DEMO_AUTH` | `false` after managed auth launch | Optional | `true` |
+| `REVASSIST_REQUIRE_MANAGED_AUTH` | `true` after managed auth launch | Optional | `false` |
+| `REVASSIST_AUTH_ISSUER` | Required for managed auth | Optional | Optional |
+| `REVASSIST_AUTH_AUDIENCE` | Required if provider audience is enforced | Optional | Optional |
+| `REVASSIST_AUTH_JWKS_URL` | Required for managed auth | Optional | Optional |
+| `REVASSIST_AUTH_TOKEN_COOKIE` | Optional provider-cookie name | Optional | Optional |
 | `REVASSIST_AI_MODE` | `mock` or `live` | `mock` preferred | `mock` |
 | `REVASSIST_MODEL` | Optional | Optional | Optional |
 | `DATABASE_URL` | Required for Postgres | Optional | Optional |
@@ -98,7 +105,7 @@ PLAYWRIGHT_BASE_URL=https://<deployment-url> PLAYWRIGHT_EXPECT_DURABLE_HISTORY=t
 
 Expected quality gates:
 
-- Unit tests cover auth/session signing, repository mapping, rate limits, schemas, and eval failure cases.
+- Unit tests cover auth/session signing, managed JWT mapping, repository mapping, rate limits, schemas, and eval failure cases.
 - `npm run eval` should report `Pass rate: 5/5`.
 - `npm run eval:report` should refresh `docs/EVAL_BASELINE.md` when eval fixtures change.
 - `npm run eval:live:report` should refresh `docs/LIVE_EVAL_SNAPSHOT.md` before model/prompt changes. It skips safely if AI Gateway credentials or account setup are incomplete; use `npm run eval:live:required` for launch gates.
@@ -188,10 +195,11 @@ curl https://<deployment-url>/api/health
 6. Upstash Redis is provisioned.
 7. Upstash Redis REST env vars are present through either `UPSTASH_REDIS_REST_*` or Vercel Marketplace `KV_REST_API_*` names.
 8. `REVASSIST_REQUIRE_DURABLE_RATE_LIMIT=true` is set after Redis validation.
-9. AI remains `mock` until live provider credentials and eval snapshots are ready.
-10. Production validation suite passes.
-11. `/api/health` returns `{ "ok": true }`.
-12. A deal analysis produces `deals.analyze.completed` logs.
+9. Managed auth env vars are present before setting `REVASSIST_REQUIRE_MANAGED_AUTH=true`.
+10. AI remains `mock` until live provider credentials and eval snapshots are ready.
+11. Production validation suite passes.
+12. `/api/health` returns `{ "ok": true }`.
+13. A deal analysis produces `deals.analyze.completed` logs.
 
 ## Rollback
 
@@ -229,7 +237,7 @@ Use `promote` when a preview deployment has already passed validation and should
 ## Interview Talking Points
 
 - The Pro app separates public demo safety from deployable SaaS infrastructure.
-- Session claims are server-signed and deal identity is not trusted from client payloads.
+- Session claims come from signed demo cookies or verified managed provider JWTs, and deal identity is not trusted from client payloads.
 - Postgres and Redis clients are lazy-initialized so first deploys and CI are not blocked by missing Marketplace env vars.
 - Production can fail fast on missing database or durable rate-limit dependencies.
 - Structured logs give request, tenant, run, model, latency, and rate-limit visibility without logging raw customer notes.

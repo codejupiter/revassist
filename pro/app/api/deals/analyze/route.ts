@@ -74,7 +74,7 @@ function isClosedStreamError(error: unknown) {
 
 export async function POST(request: Request) {
   const context = requestContext(request, "POST /api/deals/analyze");
-  const session = getSessionFromRequest(request);
+  const session = await getSessionFromRequest(request);
 
   if (!session) {
     logWarn("deals.analyze.unauthorized", context);

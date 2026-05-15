@@ -1,4 +1,11 @@
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
+import {
+  createLocalJWKSet,
+  createRemoteJWKSet,
+  jwtVerify,
+  type JSONWebKeySet,
+  type JWTPayload
+} from "jose";
 import { z } from "zod";
 
 export const SESSION_COOKIE = "revassist_session";
@@ -21,6 +28,16 @@ export type SessionClaims = z.infer<typeof sessionClaimsSchema>;
 export type PublicSession = Omit<SessionClaims, "iat" | "exp"> & {
   expiresAt: string;
 };
+type ManagedKeySet = ReturnType<typeof createLocalJWKSet> | ReturnType<typeof createRemoteJWKSet>;
+type ManagedAuthConfig = {
+  issuer: string;
+  audience?: string;
+  tokenCookie?: string;
+  jwksJson?: string;
+  jwksUrl?: string;
+};
+
+let managedKeySetCache: { source: string; keySet: ManagedKeySet } | null = null;
 
 function getSigningSecret() {
   const secret = process.env.REVASSIST_SESSION_SECRET;
@@ -61,6 +78,130 @@ function parseCookies(header: string | null) {
   }
 
   return cookies;
+}
+
+function readEnv(name: string) {
+  const value = process.env[name]?.trim();
+  return value ? value : undefined;
+}
+
+function isEnabled(value: string | undefined) {
+  return value?.toLowerCase() === "true";
+}
+
+export function isDemoSessionAllowed() {
+  return process.env.REVASSIST_ALLOW_DEMO_AUTH !== "false" && !isEnabled(process.env.REVASSIST_REQUIRE_MANAGED_AUTH);
+}
+
+export function getManagedAuthConfig(): ManagedAuthConfig | null {
+  const issuer = readEnv("REVASSIST_AUTH_ISSUER");
+  const jwksJson = readEnv("REVASSIST_AUTH_JWKS_JSON");
+  const jwksUrl = readEnv("REVASSIST_AUTH_JWKS_URL");
+
+  if (!issuer || (!jwksJson && !jwksUrl)) {
+    return null;
+  }
+
+  return {
+    issuer,
+    audience: readEnv("REVASSIST_AUTH_AUDIENCE"),
+    tokenCookie: readEnv("REVASSIST_AUTH_TOKEN_COOKIE"),
+    jwksJson,
+    jwksUrl
+  };
+}
+
+export function isManagedAuthConfigured() {
+  return Boolean(getManagedAuthConfig());
+}
+
+function getManagedKeySet(config: ManagedAuthConfig): ManagedKeySet {
+  const source = config.jwksJson ? `json:${config.jwksJson}` : `url:${config.jwksUrl}`;
+  if (managedKeySetCache?.source === source) {
+    return managedKeySetCache.keySet;
+  }
+
+  const keySet = config.jwksJson
+    ? createLocalJWKSet(JSON.parse(config.jwksJson) as JSONWebKeySet)
+    : createRemoteJWKSet(new URL(config.jwksUrl ?? ""));
+
+  managedKeySetCache = { source, keySet };
+  return keySet;
+}
+
+function getStringClaim(payload: JWTPayload, names: string[]) {
+  for (const name of names) {
+    const value = payload[name];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+
+  return null;
+}
+
+function getManagedToken(request: Request, cookies: Map<string, string>, config: ManagedAuthConfig) {
+  const authorization = request.headers.get("authorization");
+  const bearer = authorization?.match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
+  if (bearer) return bearer;
+
+  return config.tokenCookie ? cookies.get(config.tokenCookie) ?? null : null;
+}
+
+function mapManagedClaims(payload: JWTPayload): SessionClaims | null {
+  if (!payload.sub || !payload.exp) {
+    return null;
+  }
+
+  const dealerId = getStringClaim(payload, [
+    "revassist_dealer_id",
+    "https://revassist.dev/dealer_id",
+    "dealer_id",
+    "org_id",
+    "organization_id",
+    "tenant_id"
+  ]);
+  if (!dealerId) return null;
+
+  const role = sessionRoleSchema.safeParse(
+    getStringClaim(payload, [
+      "revassist_role",
+      "https://revassist.dev/role",
+      "role",
+      "org_role",
+      "organization_role"
+    ]) ?? "fi_manager"
+  );
+  const issuedAt = typeof payload.iat === "number" ? payload.iat : Math.floor(Date.now() / 1000);
+  const sessionId =
+    getStringClaim(payload, ["revassist_session_id", "https://revassist.dev/session_id", "sid", "session_id", "jti"]) ??
+    `${payload.sub}:${issuedAt}`;
+  const profileName = [getStringClaim(payload, ["given_name"]), getStringClaim(payload, ["family_name"])]
+    .filter(Boolean)
+    .join(" ");
+  const name = getStringClaim(payload, ["name", "preferred_username", "email"]) ?? (profileName || payload.sub);
+  const dealerName =
+    getStringClaim(payload, [
+      "revassist_dealer_name",
+      "https://revassist.dev/dealer_name",
+      "dealer_name",
+      "org_name",
+      "organization_name",
+      "tenant_name"
+    ]) ?? dealerId;
+
+  const parsed = sessionClaimsSchema.safeParse({
+    sessionId,
+    userId: payload.sub,
+    dealerId,
+    role: role.success ? role.data : "fi_manager",
+    name,
+    dealerName,
+    iat: issuedAt,
+    exp: payload.exp
+  });
+
+  return parsed.success ? parsed.data : null;
 }
 
 export function createSessionClaims(overrides: Partial<SessionClaims> = {}): SessionClaims {
@@ -109,8 +250,35 @@ export function verifySessionToken(token: string | null | undefined): SessionCla
   }
 }
 
-export function getSessionFromRequest(request: Request) {
-  return verifySessionToken(parseCookies(request.headers.get("cookie")).get(SESSION_COOKIE));
+export async function verifyManagedSessionToken(token: string | null | undefined): Promise<SessionClaims | null> {
+  const config = getManagedAuthConfig();
+  if (!token || !config) return null;
+
+  try {
+    const { payload } = await jwtVerify(token, getManagedKeySet(config), {
+      issuer: config.issuer,
+      audience: config.audience
+    });
+    return mapManagedClaims(payload);
+  } catch {
+    return null;
+  }
+}
+
+export async function getSessionFromRequest(request: Request) {
+  const cookies = parseCookies(request.headers.get("cookie"));
+  const managedConfig = getManagedAuthConfig();
+
+  if (managedConfig) {
+    const managedSession = await verifyManagedSessionToken(getManagedToken(request, cookies, managedConfig));
+    if (managedSession) return managedSession;
+  }
+
+  if (!isDemoSessionAllowed()) {
+    return null;
+  }
+
+  return verifySessionToken(cookies.get(SESSION_COOKIE));
 }
 
 export function toPublicSession(session: SessionClaims): PublicSession {

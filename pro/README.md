@@ -12,7 +12,7 @@ Production deployment: [https://revassist-pro.vercel.app](https://revassist-pro.
 - Streaming `POST /api/deals/analyze` endpoint using Server-Sent Events.
 - AI SDK v6 structured-output path with `streamText` and `Output.object`.
 - Mock-safe fallback for local development and CI.
-- Signed `httpOnly` session cookie with tenant/user claims.
+- Provider-agnostic `SessionClaims` boundary with signed demo cookies and optional OIDC/JWKS managed auth.
 - Zod schemas for request, output, deal runs, and audit events.
 - Per-user/dealer rate limiting with Upstash Redis production mode and in-memory local mode.
 - Repository boundary with in-memory local mode and Neon Postgres production mode.
@@ -35,7 +35,7 @@ Copy `.env.example` to `.env.local` when adding live credentials or Postgres. Lo
 
 For production rollout, see [Deployment Runbook](docs/DEPLOYMENT.md).
 
-For the managed-auth migration path, see [Authentication Migration](docs/AUTHENTICATION.md).
+For the managed-auth adapter and provider rollout path, see [Authentication](docs/AUTHENTICATION.md).
 
 For the product and interview narrative, see [RevAssist Pro Case Study](../docs/case-studies/revassist-pro.md).
 
@@ -72,9 +72,11 @@ The route checks for `VERCEL_OIDC_TOKEN`, `AI_GATEWAY_API_KEY`, or `OPENAI_API_K
 
 ## Sessions And Persistence
 
-The client opens a signed session through `POST /api/auth/demo`; the deal APIs then trust server-issued cookie claims instead of client-supplied headers. This keeps tenant and operator identity on the server side while remaining easy to demo.
+Local/demo mode opens a signed session through `POST /api/auth/demo`; the deal APIs then trust server-issued claims instead of client-supplied headers. This keeps tenant and operator identity on the server side while remaining easy to demo.
 
-The provider migration path is documented in [Authentication Migration](docs/AUTHENTICATION.md). The key constraint is preserving the internal `SessionClaims` shape so Clerk, Descope, Auth0, or another provider can map into the same API, repository, rate-limit, and audit boundaries.
+Production can disable demo sessions with `REVASSIST_REQUIRE_MANAGED_AUTH=true` and accept managed OIDC tokens from an `Authorization: Bearer` header or a configured same-origin token cookie. Provider JWTs are verified with `REVASSIST_AUTH_ISSUER`, `REVASSIST_AUTH_AUDIENCE`, and `REVASSIST_AUTH_JWKS_URL`, then mapped into the same internal `SessionClaims` shape used by APIs, repository writes, rate limits, and audit logs.
+
+The provider rollout path is documented in [Authentication](docs/AUTHENTICATION.md). Clerk through Vercel Marketplace remains the fastest hosted UI option, while the current adapter also works with Auth0, Descope, or any issuer that can provide organization/dealership claims in a JWT.
 
 Persistence is selected at runtime:
 
@@ -102,6 +104,6 @@ Use `npm run eval:live:report` to refresh the provider-backed [live eval snapsho
 
 ## Production Backlog
 
-- Replace the portfolio demo session issuer with Clerk/Auth0/Vercel Marketplace auth.
+- Connect a hosted sign-in UI and provider org sync to the managed OIDC/JWKS auth adapter.
 - Refresh live-model eval snapshots before changing prompts, model routing, or enabling live AI by default.
 - Add OpenTelemetry or provider-backed error tracking after the first Vercel deployment.

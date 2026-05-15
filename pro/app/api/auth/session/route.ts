@@ -5,7 +5,7 @@ import { logInfo, requestContext } from "@/lib/server/logging";
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  const session = getSessionFromRequest(request);
+  const session = await getSessionFromRequest(request);
 
   if (!session) {
     return NextResponse.json({ session: null });
