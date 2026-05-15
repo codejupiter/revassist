@@ -41,6 +41,9 @@ jobs:
       - name: Unit tests
         run: npm run test
 
+      - name: Eval regression suite
+        run: npm run eval
+
       - name: Build
         run: npm run build
 

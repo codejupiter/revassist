@@ -15,6 +15,7 @@ This app is the production-grade successor to the browser-only RevAssist demo. I
 - Per-user/dealer rate limiting.
 - Repository boundary with in-memory local mode and Neon Postgres production mode.
 - SQL schema for deal runs and audit events in `db/schema.sql`.
+- Labeled eval fixtures with a regression scoring runner for output quality.
 - Unit tests for schema, mock routing, copy formatting, rate limits, and repository lifecycle.
 - Playwright smoke tests for the full generated workflow on desktop and mobile.
 
@@ -36,6 +37,7 @@ Copy `.env.example` to `.env.local` when adding live credentials or Postgres. Lo
 npm run lint
 npm run typecheck
 npm run test
+npm run eval
 npm run build
 npx playwright install chromium
 npm run smoke
@@ -64,9 +66,15 @@ Persistence is selected at runtime:
 
 Apply `db/schema.sql` to a Neon database before enabling `DATABASE_URL`.
 
+## Eval Runner
+
+`npm run eval` runs the labeled regression suite in `lib/evals`. Each fixture checks profile routing, schema validity, summary relevance, add-on fit, compliance coverage, severity coverage, and follow-up SMS usefulness. CI fails if any fixture drops below its minimum score.
+
+Use `npm run eval:json` when you want machine-readable results for dashboards or future release notes.
+
 ## Production Backlog
 
 - Move rate limits to Redis or Vercel KV/Upstash.
 - Replace the portfolio demo session issuer with Clerk/Auth0/Vercel Marketplace auth.
-- Add an eval runner with labeled fixture deals.
+- Add live-model eval snapshots once provider credentials are configured.
 - Add deployment config and production environment docs.

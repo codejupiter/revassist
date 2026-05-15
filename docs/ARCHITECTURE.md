@@ -66,6 +66,7 @@ The `pro/` app is production-shaped but CI-safe:
 - It validates request payloads, model outputs, run records, and audit events with Zod.
 - It uses signed `httpOnly` cookies for tenant/operator session claims.
 - It records deal runs and audit events through a repository boundary backed by Neon Postgres when `DATABASE_URL` is present.
+- It includes a labeled eval suite for profile routing, add-on relevance, compliance coverage, severity coverage, and customer SMS quality.
 - It includes unit tests and Playwright smoke tests for the full generated workflow.
 
 ## Production Backend Target
@@ -164,13 +165,13 @@ The goal is to make every generated output explainable after the fact without st
 
 ## Evaluation Strategy
 
-The production app should include an eval suite before using real customer workflows:
+The production app includes a first eval suite before using real customer workflows:
 
-- Fixture deals for sportbike, UTV, PWC, cruiser, ATV, and service-contract edge cases.
-- Expected compliance categories per jurisdiction.
-- Add-on relevance scoring by vehicle type, term length, and down payment.
-- Regression checks for malformed JSON and missing sections.
-- Latency budget tracking for first token and complete response.
+- Fixture deals for sportbike, UTV, PWC, alternate watercraft language, and loose RZR notes.
+- Expected profile routing, add-on categories, compliance phrases, severity coverage, and SMS callbacks.
+- Regression checks for malformed JSON and missing sections through `dealOutputSchema`.
+- CI gate through `npm run eval`, with JSON output available through `npm run eval:json`.
+- Future live-model snapshots for provider-backed runs, latency budgets, and jurisdiction-specific compliance expectations.
 
 ## Interview Talking Points
 
