@@ -3,6 +3,7 @@
 import {
   AlertTriangle,
   BadgeCheck,
+  Building2,
   Clipboard,
   Gauge,
   History,
@@ -11,6 +12,7 @@ import {
   Send,
   ShieldCheck,
   Sparkles,
+  UserRound,
   WalletCards
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -23,6 +25,20 @@ type HistoryResponse = {
   auditEvents: AuditEvent[];
 };
 
+type SessionResponse = {
+  session: Session | null;
+};
+
+type Session = {
+  sessionId: string;
+  userId: string;
+  dealerId: string;
+  role: "fi_manager" | "director" | "admin";
+  name: string;
+  dealerName: string;
+  expiresAt: string;
+};
+
 type StreamPayload =
   | { type: "start"; runId: string; model: string; mode: "mock" | "live" }
   | { type: "partial"; runId: string; partial: Partial<DealOutput> }
@@ -31,9 +47,16 @@ type StreamPayload =
 
 const initialNotes = SAMPLE_DEALS[0].text;
 
+function formatRole(role: Session["role"] | undefined) {
+  if (!role) return "Locked";
+  return role.replace("_", " ");
+}
+
 export function DealWorkbench() {
   const [notes, setNotes] = useState(initialNotes);
   const [streaming, setStreaming] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
+  const [session, setSession] = useState<Session | null>(null);
   const [runId, setRunId] = useState<string | null>(null);
   const [mode, setMode] = useState<"mock" | "live">("mock");
   const [model, setModel] = useState("revassist-mock-v1");
@@ -50,15 +73,59 @@ export function DealWorkbench() {
   );
 
   async function refreshHistory() {
-    const response = await fetch("/api/deals/history", { cache: "no-store" });
+    const response = await fetch("/api/deals/history", {
+      cache: "no-store",
+      credentials: "same-origin"
+    });
+
+    if (response.status === 401) {
+      setHistory({ runs: [], auditEvents: [] });
+      return;
+    }
+
     if (response.ok) {
       setHistory(await response.json() as HistoryResponse);
     }
   }
 
+  async function ensureSession() {
+    const existing = await fetch("/api/auth/session", {
+      cache: "no-store",
+      credentials: "same-origin"
+    });
+
+    if (existing.ok) {
+      const body = await existing.json() as SessionResponse;
+      if (body.session) {
+        setSession(body.session);
+        return body.session;
+      }
+    }
+
+    const created = await fetch("/api/auth/demo", {
+      method: "POST",
+      credentials: "same-origin"
+    });
+
+    if (!created.ok) {
+      throw new Error("Unable to open a secure RevAssist session.");
+    }
+
+    const body = await created.json() as SessionResponse;
+    setSession(body.session);
+    return body.session;
+  }
+
   useEffect(() => {
-    queueMicrotask(() => {
-      void refreshHistory();
+    queueMicrotask(async () => {
+      try {
+        await ensureSession();
+        await refreshHistory();
+      } catch (caught) {
+        setError(caught instanceof Error ? caught.message : "Unable to open a secure RevAssist session.");
+      } finally {
+        setAuthReady(true);
+      }
     });
   }, []);
 
@@ -73,17 +140,18 @@ export function DealWorkbench() {
     setRunId(null);
 
     try {
+      if (!session) {
+        await ensureSession();
+      }
+
       const response = await fetch("/api/deals/analyze", {
         method: "POST",
+        credentials: "same-origin",
         headers: {
-          "Content-Type": "application/json",
-          "x-revassist-user": "demo-fi-manager",
-          "x-revassist-dealer": "demo-powersports"
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           notes,
-          dealerId: "demo-powersports",
-          operatorId: "demo-fi-manager",
           channel: "deal-desk"
         })
       });
@@ -167,7 +235,23 @@ export function DealWorkbench() {
             <span>Blocks</span>
             <strong>{blockCount}</strong>
           </div>
+          <div className="status-card">
+            <UserRound size={18} />
+            <span>Session</span>
+            <strong>{authReady ? formatRole(session?.role) : "Opening..."}</strong>
+          </div>
         </div>
+
+        <section className="panel-section">
+          <div className="section-title">
+            <Building2 size={16} />
+            <span>Workspace</span>
+          </div>
+          <div className="session-card" data-testid="session-card">
+            <strong>{session?.dealerName ?? "Opening secure session"}</strong>
+            <span>{session?.name ?? "Preparing tenant claims"}</span>
+          </div>
+        </section>
 
         <section className="panel-section">
           <div className="section-title">
@@ -210,8 +294,8 @@ export function DealWorkbench() {
           <h2>Turn raw deal notes into structured, auditable workflow output.</h2>
           <p>
             RevAssist Pro is wired like a real SaaS system: streaming API, schema validation,
-            rate limits, audit events, history, eval-ready fixtures, and live AI mode when gateway
-            credentials are present.
+            signed session claims, Postgres-ready persistence, audit events, history, and live AI
+            mode when gateway credentials are present.
           </p>
         </header>
 
@@ -244,11 +328,11 @@ export function DealWorkbench() {
               type="button"
               className="primary-button"
               data-testid="analyze-button"
-              disabled={streaming || notes.trim().length < 24}
+              disabled={!authReady || !session || streaming || notes.trim().length < 24}
               onClick={() => void analyzeDeal()}
             >
               {streaming ? <Loader2 className="spin" size={18} /> : <Send size={18} />}
-              {streaming ? "Analyzing..." : "Analyze Deal"}
+              {!authReady ? "Connecting..." : streaming ? "Analyzing..." : "Analyze Deal"}
             </button>
 
             {error && <p className="error-text">{error}</p>}

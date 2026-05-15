@@ -177,6 +177,7 @@ h1 {
 
 .history-item,
 .audit-item,
+.session-card,
 .addon-card,
 .result-section,
 .input-panel,
@@ -188,8 +189,25 @@ h1 {
 }
 
 .history-item,
-.audit-item {
+.audit-item,
+.session-card {
   padding: 12px;
+}
+
+.session-card {
+  display: grid;
+  gap: 5px;
+}
+
+.session-card strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.session-card span {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
 }
 
 .history-item strong {

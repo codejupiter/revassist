@@ -17,6 +17,10 @@ export default defineConfig({
   },
   webServer: {
     command: `npm run build && npm run start -- --port ${PORT}`,
+    env: {
+      ...process.env,
+      REVASSIST_SESSION_SECRET: process.env.REVASSIST_SESSION_SECRET ?? "revassist-pro-smoke-test-secret"
+    },
     url: `http://127.0.0.1:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000

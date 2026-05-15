@@ -2,15 +2,22 @@ import { z } from "zod";
 
 export const complianceSeveritySchema = z.enum(["info", "warn", "block"]);
 
-export const dealRequestSchema = z.object({
-  notes: z
-    .string()
-    .trim()
-    .min(24, "Add enough deal context for a useful recommendation.")
-    .max(4000, "Deal notes must stay under 4,000 characters."),
-  dealerId: z.string().trim().min(1).max(80).default("demo-powersports"),
-  operatorId: z.string().trim().min(1).max(80).default("demo-fi-manager"),
+const dealNotesSchema = z
+  .string()
+  .trim()
+  .min(24, "Add enough deal context for a useful recommendation.")
+  .max(4000, "Deal notes must stay under 4,000 characters.");
+
+const tenantIdSchema = z.string().trim().min(1).max(80);
+
+export const clientDealRequestSchema = z.object({
+  notes: dealNotesSchema,
   channel: z.enum(["deal-desk", "voice", "crm-import"]).default("deal-desk")
+});
+
+export const dealRequestSchema = clientDealRequestSchema.extend({
+  dealerId: tenantIdSchema,
+  operatorId: tenantIdSchema
 });
 
 export const addonSchema = z.object({
@@ -65,6 +72,7 @@ export const dealRunSchema = z.object({
   error: z.string().optional()
 });
 
+export type ClientDealRequest = z.infer<typeof clientDealRequestSchema>;
 export type DealRequest = z.infer<typeof dealRequestSchema>;
 export type DealOutput = z.infer<typeof dealOutputSchema>;
 export type DealRun = z.infer<typeof dealRunSchema>;

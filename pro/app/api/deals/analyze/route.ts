@@ -1,12 +1,11 @@
 import { Output, streamText } from "ai";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { buildDealPrompt } from "@/lib/deal/prompt";
-import { dealOutputSchema, dealRequestSchema, type DealOutput } from "@/lib/deal/schema";
+import { clientDealRequestSchema, dealOutputSchema, type DealOutput, type DealRequest } from "@/lib/deal/schema";
 import { getMockDealOutput, getPartialOutputs } from "@/lib/deal/mock";
 import { analyzeRateLimiter } from "@/lib/server/rate-limit";
 import { getDealRepository } from "@/lib/server/repository";
-import { getDemoSession } from "@/lib/server/session";
+import { getSessionFromRequest } from "@/lib/server/auth";
 import { encodeSse } from "@/lib/server/stream-events";
 
 export const runtime = "nodejs";
@@ -46,7 +45,7 @@ async function streamMockOutput(
 async function streamLiveOutput(
   controller: ReadableStreamDefaultController<Uint8Array>,
   runId: string,
-  request: z.infer<typeof dealRequestSchema>,
+  request: DealRequest,
   model: string
 ) {
   const result = streamText({
@@ -69,13 +68,18 @@ async function streamLiveOutput(
 }
 
 export async function POST(request: Request) {
-  const session = getDemoSession(request.headers);
+  const session = getSessionFromRequest(request);
+
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const ip = getClientIp(request);
   const rateKey = `analyze:${session.dealerId}:${session.userId}:${ip}`;
   const rate = analyzeRateLimiter.check(rateKey, RATE_LIMIT, RATE_WINDOW_MS);
 
   if (!rate.allowed) {
-    getDealRepository().addAudit({
+    await getDealRepository().addAudit({
       runId: "rate_limited",
       type: "deal.run.rate_limited",
       severity: "medium",
@@ -96,7 +100,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const payload = dealRequestSchema.safeParse(await request.json().catch(() => null));
+  const payload = clientDealRequestSchema.safeParse(await request.json().catch(() => null));
   if (!payload.success) {
     return NextResponse.json(
       { error: "Invalid deal request", issues: payload.error.flatten().fieldErrors },
@@ -104,15 +108,15 @@ export async function POST(request: Request) {
     );
   }
 
-  const body = {
+  const body: DealRequest = {
     ...payload.data,
-    dealerId: payload.data.dealerId || session.dealerId,
-    operatorId: payload.data.operatorId || session.userId
+    dealerId: session.dealerId,
+    operatorId: session.userId
   };
   const live = shouldUseLiveAi();
   const model = live ? process.env.REVASSIST_MODEL ?? DEFAULT_MODEL : "revassist-mock-v1";
   const repository = getDealRepository();
-  const run = repository.createRun({
+  const run = await repository.createRun({
     dealerId: body.dealerId,
     operatorId: body.operatorId,
     notes: body.notes,
@@ -120,7 +124,7 @@ export async function POST(request: Request) {
   });
   const startedAt = performance.now();
 
-  repository.addAudit({
+  await repository.addAudit({
     runId: run.id,
     type: "deal.run.created",
     severity: "low",
@@ -132,7 +136,7 @@ export async function POST(request: Request) {
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       controller.enqueue(encodeSse({ type: "start", runId: run.id, model, mode: live ? "live" : "mock" }));
-      repository.markStreaming(run.id);
+      await repository.markStreaming(run.id);
 
       try {
         const output: DealOutput = live
@@ -140,8 +144,8 @@ export async function POST(request: Request) {
           : await streamMockOutput(controller, run.id, body.notes);
         const latencyMs = Math.round(performance.now() - startedAt);
 
-        repository.completeRun(run.id, output, latencyMs);
-        repository.addAudit({
+        await repository.completeRun(run.id, output, latencyMs);
+        await repository.addAudit({
           runId: run.id,
           type: "deal.run.completed",
           severity: output.compliance.some((flag) => flag.severity === "block") ? "medium" : "low",
@@ -152,8 +156,8 @@ export async function POST(request: Request) {
         controller.enqueue(encodeSse({ type: "final", runId: run.id, output, latencyMs }));
       } catch (error) {
         const message = error instanceof Error ? error.message : "Unable to analyze deal.";
-        repository.failRun(run.id, message);
-        repository.addAudit({
+        await repository.failRun(run.id, message);
+        await repository.addAudit({
           runId: run.id,
           type: "deal.run.failed",
           severity: "high",

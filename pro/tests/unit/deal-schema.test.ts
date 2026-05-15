@@ -1,19 +1,22 @@
 import { describe, expect, it } from "vitest";
 import { buildCopyText } from "@/lib/deal/copy";
 import { getMockDealOutput, getPartialOutputs, selectDealProfile } from "@/lib/deal/mock";
-import { dealOutputSchema, dealRequestSchema } from "@/lib/deal/schema";
+import { clientDealRequestSchema, dealOutputSchema, dealRequestSchema } from "@/lib/deal/schema";
 
 describe("RevAssist Pro deal schema", () => {
   it("validates incoming deal requests", () => {
-    const parsed = dealRequestSchema.parse({
+    const clientParsed = clientDealRequestSchema.parse({
       notes: "Customer wants a 2024 Yamaha YZF-R1 with $2k down and 720 FICO.",
-      dealerId: "demo",
-      operatorId: "manager",
       channel: "deal-desk"
+    });
+    const parsed = dealRequestSchema.parse({
+      ...clientParsed,
+      dealerId: "demo",
+      operatorId: "manager"
     });
 
     expect(parsed.notes).toContain("Yamaha");
-    expect(() => dealRequestSchema.parse({ notes: "too short" })).toThrow();
+    expect(() => clientDealRequestSchema.parse({ notes: "too short" })).toThrow();
   });
 
   it("routes sample notes to deterministic profiles", () => {

@@ -1,6 +1,6 @@
 # RevAssist Architecture
 
-RevAssist is a focused AI workflow product for powersports dealership finance and insurance teams. The public demo runs in browser-only mock mode so it can be deployed safely on GitHub Pages, and `pro/` now contains the Next.js fullstack foundation for the production version: a deal-note intake surface, a schema-locked streaming API, rate limiting, audit events, deal history, and CI-backed tests.
+RevAssist is a focused AI workflow product for powersports dealership finance and insurance teams. The public demo runs in browser-only mock mode so it can be deployed safely on GitHub Pages, and `pro/` now contains the Next.js fullstack foundation for the production version: a deal-note intake surface, signed session claims, a schema-locked streaming API, rate limiting, audit events, Postgres-ready deal history, and CI-backed tests.
 
 ## Product Boundary
 
@@ -40,10 +40,11 @@ Keeping this logic out of React makes the workflow testable and makes the future
 
 ```mermaid
 flowchart TD
-  Client["Next.js deal workbench"] --> API["POST /api/deals/analyze"]
+  Client["Next.js deal workbench"] --> Auth["signed httpOnly session"]
+  Auth --> API["POST /api/deals/analyze"]
   API --> Schema["Zod request validation"]
   Schema --> Rate["tenant/user rate limit"]
-  Rate --> Repo["deal repository"]
+  Rate --> Repo["deal repository boundary"]
   Rate --> Mode{"Live AI credentials?"}
   Mode -->|yes| AISDK["AI SDK streamText + Output.object"]
   Mode -->|no| Mock["deterministic mock stream"]
@@ -52,6 +53,9 @@ flowchart TD
   SSE --> Client
   Repo --> History["GET /api/deals/history"]
   Repo --> Audit["audit event trail"]
+  Repo --> Store{"DATABASE_URL?"}
+  Store -->|yes| Postgres["Neon Postgres"]
+  Store -->|no| Memory["in-memory CI/local adapter"]
 ```
 
 The `pro/` app is production-shaped but CI-safe:
@@ -60,7 +64,8 @@ The `pro/` app is production-shaped but CI-safe:
 - It switches to live AI only when `REVASSIST_AI_MODE=live` and gateway/provider credentials are available.
 - It uses the Vercel AI SDK v6 structured-output path with `streamText` and `Output.object`.
 - It validates request payloads, model outputs, run records, and audit events with Zod.
-- It records deal runs and audit events through a repository boundary that can be replaced by Postgres.
+- It uses signed `httpOnly` cookies for tenant/operator session claims.
+- It records deal runs and audit events through a repository boundary backed by Neon Postgres when `DATABASE_URL` is present.
 - It includes unit tests and Playwright smoke tests for the full generated workflow.
 
 ## Production Backend Target
@@ -88,6 +93,7 @@ Production responsibilities move behind an authenticated API:
 - Store deal runs, operator actions, latency, model version, and compliance flags.
 - Rate-limit by user, tenant, and dealership location.
 - Redact sensitive customer data before logs leave the application boundary.
+- Keep server-owned tenant identity in signed sessions or managed auth claims, never in trusted client fields.
 
 ## API Contract
 
@@ -96,19 +102,21 @@ Request:
 ```json
 {
   "notes": "Customer wants a 2024 Yamaha YZF-R1...",
-  "dealerId": "dealer_123",
-  "operatorId": "user_456",
   "channel": "deal-desk"
 }
 ```
+
+Dealer and operator identity come from signed session claims, not client-submitted request fields.
 
 Streaming event shape:
 
 ```json
 {
-  "type": "token",
+  "type": "partial",
   "runId": "run_789",
-  "content": "{ \"summary\": ..."
+  "partial": {
+    "summary": "Plain-English deal recap..."
+  }
 }
 ```
 
@@ -138,12 +146,11 @@ Final response shape:
 
 Core tables for the production version:
 
-- `deal_runs`: input hash, model version, latency, token count, status, operator, dealership.
-- `deal_outputs`: normalized JSON output, validation status, copied sections, regeneration count.
-- `audit_events`: run created, output copied, SMS copied, compliance flag acknowledged.
+- `revassist_deal_runs`: input hash, prompt version, model version, latency, status, output JSON, operator, dealership.
+- `revassist_audit_events`: run created, run completed, failures, rate-limit events, actor, tenant, event detail.
 - `eval_cases`: labeled notes, expected flags, expected add-on categories, regression status.
 
-The goal is to make every generated output explainable after the fact without storing more customer data than necessary.
+The goal is to make every generated output explainable after the fact without storing more customer data than necessary. The SQL bootstrap for the implemented tables lives in `pro/db/schema.sql`.
 
 ## Reliability And Safety
 

@@ -14,6 +14,8 @@ test.describe("RevAssist Pro", () => {
     await expect(page.getByTestId("pro-shell")).toBeVisible();
     await expect(page.getByRole("heading", { name: /deal desk os/i })).toBeVisible();
     await expect(page.getByTestId("deal-notes")).toHaveValue(/Yamaha YZF-R1/);
+    await expect(page.getByTestId("session-card")).toContainText("Sun Valley Powersports");
+    await expect(page.getByTestId("analyze-button")).toBeEnabled();
 
     await page.getByTestId("analyze-button").click();
 
@@ -29,6 +31,7 @@ test.describe("RevAssist Pro", () => {
 
   test("supports sample switching on mobile and desktop", async ({ page }) => {
     await page.goto("/");
+    await expect(page.getByTestId("analyze-button")).toBeEnabled();
     await page.getByRole("button", { name: "Polaris RZR XP" }).click();
     await expect(page.getByTestId("deal-notes")).toHaveValue(/Polaris RZR XP 1000/);
     await page.getByTestId("analyze-button").click();

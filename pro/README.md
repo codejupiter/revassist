@@ -10,9 +10,11 @@ This app is the production-grade successor to the browser-only RevAssist demo. I
 - Streaming `POST /api/deals/analyze` endpoint using Server-Sent Events.
 - AI SDK v6 structured-output path with `streamText` and `Output.object`.
 - Mock-safe fallback for local development and CI.
+- Signed `httpOnly` session cookie with tenant/user claims.
 - Zod schemas for request, output, deal runs, and audit events.
 - Per-user/dealer rate limiting.
-- In-memory deal history and audit trail.
+- Repository boundary with in-memory local mode and Neon Postgres production mode.
+- SQL schema for deal runs and audit events in `db/schema.sql`.
 - Unit tests for schema, mock routing, copy formatting, rate limits, and repository lifecycle.
 - Playwright smoke tests for the full generated workflow on desktop and mobile.
 
@@ -25,6 +27,8 @@ npm run dev
 ```
 
 Open `http://localhost:3010`.
+
+Copy `.env.example` to `.env.local` when adding live credentials or Postgres. Local development works without secrets.
 
 ## Validation
 
@@ -48,10 +52,21 @@ REVASSIST_MODEL=openai/gpt-5.4
 
 The route checks for `VERCEL_OIDC_TOKEN`, `AI_GATEWAY_API_KEY`, or `OPENAI_API_KEY` before attempting live generation. Without credentials, it stays in deterministic mock mode so CI remains stable.
 
+## Sessions And Persistence
+
+The client opens a signed session through `POST /api/auth/demo`; the deal APIs then trust server-issued cookie claims instead of client-supplied headers. This keeps tenant and operator identity on the server side while remaining easy to demo.
+
+Persistence is selected at runtime:
+
+- No `DATABASE_URL`: uses the in-memory repository for fast local development and CI.
+- `DATABASE_URL` present: uses Neon/Postgres through `@neondatabase/serverless`.
+- `REVASSIST_REQUIRE_DATABASE=true`: fails fast if Postgres is not configured.
+
+Apply `db/schema.sql` to a Neon database before enabling `DATABASE_URL`.
+
 ## Production Backlog
 
-- Replace the in-memory repository with a Postgres adapter.
-- Replace demo headers with real auth/session claims.
 - Move rate limits to Redis or Vercel KV/Upstash.
+- Replace the portfolio demo session issuer with Clerk/Auth0/Vercel Marketplace auth.
 - Add an eval runner with labeled fixture deals.
 - Add deployment config and production environment docs.
