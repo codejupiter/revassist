@@ -11,7 +11,8 @@ export default defineConfig({
   expect: {
     timeout: 10_000
   },
-  fullyParallel: true,
+  fullyParallel: !remoteBaseURL,
+  workers: remoteBaseURL ? 1 : undefined,
   reporter: process.env.CI ? [["dot"], ["html", { open: "never" }]] : "list",
   use: {
     baseURL,

@@ -55,6 +55,8 @@ To smoke-test a deployed Vercel URL instead of starting a local server:
 PLAYWRIGHT_BASE_URL=https://revassist-pro.vercel.app npm run smoke
 ```
 
+Remote smoke tests validate the generated workflow output by default. After Neon persistence is configured, add `PLAYWRIGHT_EXPECT_DURABLE_HISTORY=true` to also require completed history and audit events across Vercel functions.
+
 ## Live AI Mode
 
 Mock mode is the default. To use live AI generation locally or on Vercel, provide gateway/provider credentials and set:

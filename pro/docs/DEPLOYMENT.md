@@ -76,6 +76,7 @@ npm run build
 npx playwright install chromium
 npm run smoke
 PLAYWRIGHT_BASE_URL=https://<deployment-url> npm run smoke
+PLAYWRIGHT_BASE_URL=https://<deployment-url> PLAYWRIGHT_EXPECT_DURABLE_HISTORY=true npm run smoke
 ```
 
 Expected quality gates:
@@ -85,6 +86,7 @@ Expected quality gates:
 - `npm run eval:report` should refresh `docs/EVAL_BASELINE.md` when eval fixtures change.
 - Smoke tests should pass on desktop and mobile Chromium.
 - Remote smoke tests should pass against the Vercel deployment URL before promotion or public sharing.
+- Set `PLAYWRIGHT_EXPECT_DURABLE_HISTORY=true` after Neon is configured so remote smoke tests also prove cross-function history/audit persistence.
 
 ## Vercel Deployment
 
