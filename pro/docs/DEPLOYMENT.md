@@ -75,6 +75,7 @@ npm run eval
 npm run build
 npx playwright install chromium
 npm run smoke
+PLAYWRIGHT_BASE_URL=https://<deployment-url> npm run smoke
 ```
 
 Expected quality gates:
@@ -83,6 +84,7 @@ Expected quality gates:
 - `npm run eval` should report `Pass rate: 5/5`.
 - `npm run eval:report` should refresh `docs/EVAL_BASELINE.md` when eval fixtures change.
 - Smoke tests should pass on desktop and mobile Chromium.
+- Remote smoke tests should pass against the Vercel deployment URL before promotion or public sharing.
 
 ## Vercel Deployment
 

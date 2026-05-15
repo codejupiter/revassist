@@ -1,6 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 3011;
+const remoteBaseURL = process.env.PLAYWRIGHT_BASE_URL;
+const baseURL = remoteBaseURL ?? `http://127.0.0.1:${PORT}`;
 
 export default defineConfig({
   testDir: "./tests/smoke",
@@ -12,19 +14,21 @@ export default defineConfig({
   fullyParallel: true,
   reporter: process.env.CI ? [["dot"], ["html", { open: "never" }]] : "list",
   use: {
-    baseURL: `http://127.0.0.1:${PORT}`,
+    baseURL,
     trace: "on-first-retry"
   },
-  webServer: {
-    command: `npm run build && npm run start -- --port ${PORT}`,
-    env: {
-      ...process.env,
-      REVASSIST_SESSION_SECRET: process.env.REVASSIST_SESSION_SECRET ?? "revassist-pro-smoke-test-secret"
-    },
-    url: `http://127.0.0.1:${PORT}`,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000
-  },
+  webServer: remoteBaseURL
+    ? undefined
+    : {
+        command: `npm run build && npm run start -- --port ${PORT}`,
+        env: {
+          ...process.env,
+          REVASSIST_SESSION_SECRET: process.env.REVASSIST_SESSION_SECRET ?? "revassist-pro-smoke-test-secret"
+        },
+        url: baseURL,
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000
+      },
   projects: [
     {
       name: "desktop-chromium",

@@ -49,6 +49,12 @@ npx playwright install chromium
 npm run smoke
 ```
 
+To smoke-test a deployed Vercel URL instead of starting a local server:
+
+```bash
+PLAYWRIGHT_BASE_URL=https://revassist-pro.vercel.app npm run smoke
+```
+
 ## Live AI Mode
 
 Mock mode is the default. To use live AI generation locally or on Vercel, provide gateway/provider credentials and set:
