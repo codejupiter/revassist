@@ -86,7 +86,7 @@ Apply `db/schema.sql` to a Neon database before enabling `DATABASE_URL`.
 
 ## Rate Limiting
 
-The analyze endpoint rate-limits by dealership, operator, and client IP. Without Redis credentials it uses an in-memory store for local development and CI. With `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`, it switches to `@upstash/redis` so limits survive serverless instances and deploys.
+The analyze endpoint rate-limits by dealership, operator, and client IP. Without Redis credentials it uses an in-memory store for local development and CI. With `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`, or Vercel Marketplace `KV_REST_API_URL` / `KV_REST_API_TOKEN`, it switches to `@upstash/redis` so limits survive serverless instances and deploys.
 
 Set `REVASSIST_REQUIRE_DURABLE_RATE_LIMIT=true` in production if the app should fail fast instead of falling back to memory when Redis is missing.
 

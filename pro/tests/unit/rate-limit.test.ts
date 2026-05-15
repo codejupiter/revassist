@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { createRateLimiter, MemoryRateLimitStore, RedisRateLimitStore } from "@/lib/server/rate-limit";
+import { afterEach, describe, expect, it } from "vitest";
+import { createRateLimiter, getRedisRateLimitEnv, MemoryRateLimitStore, RedisRateLimitStore } from "@/lib/server/rate-limit";
 
 class FakeRedisClient {
   counts = new Map<string, number>();
@@ -22,6 +22,13 @@ class FakeRedisClient {
 }
 
 describe("rate limiter", () => {
+  afterEach(() => {
+    delete process.env.UPSTASH_REDIS_REST_URL;
+    delete process.env.UPSTASH_REDIS_REST_TOKEN;
+    delete process.env.KV_REST_API_URL;
+    delete process.env.KV_REST_API_TOKEN;
+  });
+
   it("allows requests until the limit is reached", async () => {
     const limiter = createRateLimiter(new MemoryRateLimitStore());
     await expect(limiter.check("tenant:user", 2, 1000, 100)).resolves.toMatchObject({
@@ -68,5 +75,15 @@ describe("rate limiter", () => {
     });
     expect(redis.counts.get("test:rate:dealer:user")).toBe(3);
     expect(redis.expirations.get("test:rate:dealer:user")).toBe(60_000);
+  });
+
+  it("accepts Vercel Marketplace Upstash KV environment variables", () => {
+    process.env.KV_REST_API_URL = "https://example.upstash.io";
+    process.env.KV_REST_API_TOKEN = "token";
+
+    expect(getRedisRateLimitEnv()).toEqual({
+      url: "https://example.upstash.io",
+      token: "token"
+    });
   });
 });

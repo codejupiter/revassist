@@ -29,7 +29,7 @@ Neon and Upstash Marketplace integrations are installed at the account level, bu
 Provision these through the Vercel Marketplace when possible so environment variables are injected into the linked project:
 
 - Neon Postgres for `DATABASE_URL`.
-- Upstash Redis for `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`.
+- Upstash Redis for `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`, or Vercel Marketplace `KV_REST_API_URL` / `KV_REST_API_TOKEN`.
 - Vercel AI Gateway or provider credentials for live generation.
 
 Apply the schema in `db/schema.sql` before enabling the Postgres repository in production.
@@ -47,8 +47,8 @@ Server-only variables:
 | `REVASSIST_MODEL` | Optional | Optional | Optional |
 | `DATABASE_URL` | Required for Postgres | Optional | Optional |
 | `REVASSIST_REQUIRE_DATABASE` | `true` after DB launch | `false` | `false` |
-| `UPSTASH_REDIS_REST_URL` | Required for durable limits | Optional | Optional |
-| `UPSTASH_REDIS_REST_TOKEN` | Required for durable limits | Optional | Optional |
+| `UPSTASH_REDIS_REST_URL` / `KV_REST_API_URL` | Required for durable limits | Optional | Optional |
+| `UPSTASH_REDIS_REST_TOKEN` / `KV_REST_API_TOKEN` | Required for durable limits | Optional | Optional |
 | `REVASSIST_REQUIRE_DURABLE_RATE_LIMIT` | `true` after Redis launch | `false` | `false` |
 | `REVASSIST_RATE_LIMIT_PREFIX` | Optional | Optional | Optional |
 | `AI_GATEWAY_API_KEY` / `OPENAI_API_KEY` | Required only for live mode | Avoid unless needed | Optional |
@@ -180,7 +180,7 @@ curl https://<deployment-url>/api/health
 4. `DATABASE_URL` is present.
 5. `REVASSIST_REQUIRE_DATABASE=true` is set after DB validation.
 6. Upstash Redis is provisioned.
-7. `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are present.
+7. Upstash Redis REST env vars are present through either `UPSTASH_REDIS_REST_*` or Vercel Marketplace `KV_REST_API_*` names.
 8. `REVASSIST_REQUIRE_DURABLE_RATE_LIMIT=true` is set after Redis validation.
 9. AI remains `mock` until live provider credentials and eval snapshots are ready.
 10. Production validation suite passes.

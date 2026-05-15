@@ -78,17 +78,29 @@ export class RedisRateLimitStore implements RateLimitStore {
 
 let redis: Redis | null = null;
 
+export function getRedisRateLimitEnv() {
+  const url = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
+
+  if (!url || !token) return null;
+
+  return { url, token };
+}
+
 export function hasRedisRateLimitEnv() {
-  return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+  return Boolean(getRedisRateLimitEnv());
 }
 
 function getRedisClient() {
-  if (!hasRedisRateLimitEnv()) {
-    throw new Error("UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are required for Redis rate limiting.");
+  const redisEnv = getRedisRateLimitEnv();
+  if (!redisEnv) {
+    throw new Error(
+      "UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN or KV_REST_API_URL/KV_REST_API_TOKEN are required for Redis rate limiting."
+    );
   }
 
   if (!redis) {
-    redis = Redis.fromEnv();
+    redis = new Redis(redisEnv);
   }
 
   return redis;

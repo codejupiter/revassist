@@ -6,7 +6,7 @@ import { getMockDealOutput, getPartialOutputs } from "@/lib/deal/mock";
 import { analyzeRateLimiter } from "@/lib/server/rate-limit";
 import { getDealRepository } from "@/lib/server/repository";
 import { getSessionFromRequest } from "@/lib/server/auth";
-import { encodeSse } from "@/lib/server/stream-events";
+import { encodeSse, type DealStreamEvent } from "@/lib/server/stream-events";
 import { logError, logInfo, logWarn, requestContext } from "@/lib/server/logging";
 
 export const runtime = "nodejs";
@@ -31,20 +31,20 @@ function sleep(ms: number) {
 }
 
 async function streamMockOutput(
-  controller: ReadableStreamDefaultController<Uint8Array>,
+  send: (event: DealStreamEvent) => boolean,
   runId: string,
   notes: string
 ) {
   const output = getMockDealOutput(notes);
   for (const partial of getPartialOutputs(output)) {
-    controller.enqueue(encodeSse({ type: "partial", runId, partial }));
+    if (!send({ type: "partial", runId, partial })) break;
     await sleep(80);
   }
   return output;
 }
 
 async function streamLiveOutput(
-  controller: ReadableStreamDefaultController<Uint8Array>,
+  send: (event: DealStreamEvent) => boolean,
   runId: string,
   request: DealRequest,
   model: string
@@ -61,11 +61,15 @@ async function streamLiveOutput(
   });
 
   for await (const partial of result.partialOutputStream) {
-    controller.enqueue(encodeSse({ type: "partial", runId, partial }));
+    if (!send({ type: "partial", runId, partial })) break;
   }
 
   const output = await result.output;
   return dealOutputSchema.parse(output);
+}
+
+function isClosedStreamError(error: unknown) {
+  return error instanceof Error && /controller is already closed|invalid state/i.test(error.message);
 }
 
 export async function POST(request: Request) {
@@ -173,13 +177,38 @@ export async function POST(request: Request) {
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      controller.enqueue(encodeSse({ type: "start", runId: run.id, model, mode: live ? "live" : "mock" }));
+      let streamClosed = false;
+      const send = (event: DealStreamEvent) => {
+        if (streamClosed) return false;
+
+        try {
+          controller.enqueue(encodeSse(event));
+          return true;
+        } catch (error) {
+          if (!isClosedStreamError(error)) throw error;
+          streamClosed = true;
+          return false;
+        }
+      };
+      const closeStream = () => {
+        if (streamClosed) return;
+
+        try {
+          controller.close();
+        } catch (error) {
+          if (!isClosedStreamError(error)) throw error;
+        } finally {
+          streamClosed = true;
+        }
+      };
+
+      send({ type: "start", runId: run.id, model, mode: live ? "live" : "mock" });
       await repository.markStreaming(run.id);
 
       try {
         const output: DealOutput = live
-          ? await streamLiveOutput(controller, run.id, body, model)
-          : await streamMockOutput(controller, run.id, body.notes);
+          ? await streamLiveOutput(send, run.id, body, model)
+          : await streamMockOutput(send, run.id, body.notes);
         const latencyMs = Math.round(performance.now() - startedAt);
 
         await repository.completeRun(run.id, output, latencyMs);
@@ -201,7 +230,7 @@ export async function POST(request: Request) {
           latencyMs,
           complianceBlocks: output.compliance.filter((flag) => flag.severity === "block").length
         });
-        controller.enqueue(encodeSse({ type: "final", runId: run.id, output, latencyMs }));
+        send({ type: "final", runId: run.id, output, latencyMs });
       } catch (error) {
         const message = error instanceof Error ? error.message : "Unable to analyze deal.";
         await repository.failRun(run.id, message);
@@ -222,9 +251,9 @@ export async function POST(request: Request) {
           model,
           error: message
         });
-        controller.enqueue(encodeSse({ type: "error", runId: run.id, message }));
+        send({ type: "error", runId: run.id, message });
       } finally {
-        controller.close();
+        closeStream();
       }
     }
   });
