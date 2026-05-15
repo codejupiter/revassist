@@ -178,7 +178,8 @@ The production app includes a first eval suite before using real customer workfl
 - Fixture deals for sportbike, UTV, PWC, alternate watercraft language, and loose RZR notes.
 - Expected profile routing, add-on categories, compliance phrases, severity coverage, and SMS callbacks.
 - Regression checks for malformed JSON and missing sections through `dealOutputSchema`.
-- CI gate through `npm run eval`, with JSON output available through `npm run eval:json`.
+- CI gate through `npm run eval`, with JSON output available through `npm run eval:json` and a GitHub-readable baseline report through `npm run eval:report`.
+- Current deterministic baseline: [pro/docs/EVAL_BASELINE.md](../pro/docs/EVAL_BASELINE.md).
 - Future live-model snapshots for provider-backed runs, latency budgets, and jurisdiction-specific compliance expectations.
 
 ## Interview Talking Points

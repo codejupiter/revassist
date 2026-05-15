@@ -13,6 +13,7 @@ Drop in raw deal notes, get back a structured deal summary, suggested F&I add-on
 - [Architecture](docs/ARCHITECTURE.md) — product boundary, current frontend architecture, production backend target, API contract, data model, safety, and eval strategy.
 - [RevAssist Pro Case Study](docs/case-studies/revassist-pro.md) — product problem, architecture decisions, tradeoffs, security, evals, scalability, and interview talking points.
 - [RevAssist Pro](pro/README.md) — Next.js fullstack app with streaming API, signed session claims, Postgres-ready persistence, schema validation, rate limits, audit events, history, tests, and live AI mode.
+- [RevAssist Pro Eval Baseline](pro/docs/EVAL_BASELINE.md) — deterministic regression report for routing, schema validity, add-on relevance, compliance coverage, and SMS quality.
 - [RevAssist Pro Deployment](pro/docs/DEPLOYMENT.md) — Vercel, Neon, Upstash, env vars, observability, launch checklist, and rollback runbook.
 
 ---
@@ -83,6 +84,7 @@ npm run smoke
 - **Optimistic partial render**: as tokens arrive, a parse attempt runs on every chunk. The first valid parse swaps the raw stream view for the structured render.
 - **Production backend path**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) documents the authenticated streaming API, data model, rate limits, audit logs, and evals needed to turn the browser demo into a SaaS workflow.
 - **Case-study narrative**: [docs/case-studies/revassist-pro.md](docs/case-studies/revassist-pro.md) explains the engineering decisions, tradeoffs, and interview story behind the Pro app.
+- **Eval baseline**: [pro/docs/EVAL_BASELINE.md](pro/docs/EVAL_BASELINE.md) turns the regression suite into a readable quality report for reviewers.
 - **Latency surfaced**: response time and token count are exposed in the UI for transparency.
 - **Three sample deals** (sportbike / UTV / PWC) included for fast testing.
 

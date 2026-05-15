@@ -1,8 +1,37 @@
+import { mkdir, writeFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
+
+import { formatEvalMarkdownReport } from "../lib/evals/report";
 import { runDealEvalSuite, summarizeEvalResults } from "../lib/evals/scoring";
 
-const args = new Set(process.argv.slice(2));
+const rawArgs = process.argv.slice(2);
+const args = new Set(rawArgs);
 const results = runDealEvalSuite();
 const summary = summarizeEvalResults(results);
+
+function getArgValue(name: string) {
+  const equalsArg = rawArgs.find((arg) => arg.startsWith(`${name}=`));
+  if (equalsArg) return equalsArg.slice(name.length + 1);
+
+  const index = rawArgs.indexOf(name);
+  if (index === -1) return null;
+
+  return rawArgs[index + 1] ?? null;
+}
+
+const reportPath = getArgValue("--report");
+
+if (reportPath) {
+  const absoluteReportPath = resolve(reportPath);
+  await mkdir(dirname(absoluteReportPath), { recursive: true });
+  await writeFile(
+    absoluteReportPath,
+    `${formatEvalMarkdownReport(summary, results, {
+      refreshCommand: "npm run eval:report"
+    })}\n`
+  );
+  console.log(`Wrote eval report to ${reportPath}`);
+}
 
 if (args.has("--json")) {
   console.log(JSON.stringify({ summary, results }, null, 2));

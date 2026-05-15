@@ -82,6 +82,8 @@ Set `REVASSIST_REQUIRE_DURABLE_RATE_LIMIT=true` in production if the app should 
 
 Use `npm run eval:json` when you want machine-readable results for dashboards or future release notes.
 
+Use `npm run eval:report` to refresh the GitHub-readable [eval baseline report](docs/EVAL_BASELINE.md).
+
 ## Production Backlog
 
 - Replace the portfolio demo session issuer with Clerk/Auth0/Vercel Marketplace auth.

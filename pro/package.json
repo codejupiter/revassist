@@ -14,6 +14,7 @@
     "test:watch": "vitest",
     "eval": "tsx scripts/run-evals.ts",
     "eval:json": "tsx scripts/run-evals.ts --json",
+    "eval:report": "tsx scripts/run-evals.ts --report docs/EVAL_BASELINE.md",
     "smoke": "playwright test",
     "smoke:ui": "playwright test --ui"
   },
